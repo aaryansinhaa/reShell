@@ -1,25 +1,23 @@
 # reshell Documentation
 
-Welcome to the official documentation for **reshell**, the portable and reproducible Developer Terminal Manager.
+Welcome to the reshell documentation. reshell is a portable configuration and command-line workspace manager for developers.
 
-reshell helps developers organize, version-control, and share their command-line workspaces. Whether you need to sync shell aliases across multiple systems, run complex workflows, template new projects, or install system dependencies securely, reshell consolidates these workflows under a unified CLI utility and TUI dashboard.
+reshell centralizes your shell configurations, including environment variables, command aliases, script snippets, custom shell functions, system packages, and git profiles into a single, version-controlled configuration directory.
 
 ---
 
 ## Document Sections
 
-To get started, browse the following topics:
-
-1. **[Getting Started](getting-started.md)**: System requirements, installation, and integration hooks setup.
-2. **[Snippets & Aliases](snippets-aliases.md)**: Managing code blocks, system clipboard support, and alias override checks.
-3. **[Functions, Scripts & Workflows](functions-scripts.md)**: Dry-running functions, parameterized scripts execution, and workflow automation.
-4. **[Packages & Marketplace](package-marketplace.md)**: Synced OS dependency installations, elevated sudo entry piping, and third-party configuration packs.
+1. **[Getting Started](getting-started.md)**: Requirements, installation, profile integration, and configuration import/export.
+2. **[Snippets & Aliases](snippets-aliases.md)**: Managing code blocks, clipboard interactions, and command conflict checks.
+3. **[Functions, Scripts & Workflows](functions-scripts.md)**: Writing custom shell functions, script parameters parsing, and workflow step execution.
+4. **[Packages & Marketplace](package-marketplace.md)**: System dependency synchronization, sudo password piping, and third-party configuration packs.
 
 ---
 
 ## Design Principles
 
-- **No Hidden State**: All configuration sets are written as human-readable TOML files under `~/.config/reshell`. There are no hidden binary registries or heavy database engines.
-- **Dry Sourcing**: Rather than overriding system shells, reshell generates static files sourced by your profile. Sourcing keeps resource overhead at zero and preserves normal terminal startup speeds.
-- **Permission Elevation Safety**: Installation actions needing root privileges prompt you securely at runtime rather than requiring the whole reshell process to run as root.
-- **100% Portability**: Backing up your `~/.config/reshell` directory or using the ZIP exporter yields an identical terminal workspace on any fresh operating system.
+- **Declarative Configuration**: All configurations are stored as human-readable TOML files under `~/.config/reshell`. No binary databases or external registries are used.
+- **Subshell Isolation Avoidance**: To allow configurations (like directory changes or environment updates) to affect the active terminal, reshell generates native scripts that are sourced directly by your shell profile.
+- **Secure Privilege Elevation**: Operations requiring administrative privileges prompt for authorization at runtime, avoiding running the main application as root.
+- **Portability**: All settings are packaged into structured files, allowing environment synchronization across new installations without configuration drift.

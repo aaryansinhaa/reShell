@@ -1,26 +1,26 @@
 # Snippets & Aliases
 
-Learn how to configure bookmarks and shell command mapping overrides.
+This section explains how to manage script snippets and shell command mappings.
 
 ---
 
-## Snippet Manager
+## Snippets
 
-Snippets are multi-line code blocks or shortcuts saved for reuse. They are defined in `~/.config/reshell/snippets.toml`.
+Snippets are reusable code blocks or templates stored in `~/.config/reshell/snippets.toml`.
 
 ### Adding Snippets
 
-Create a snippet using the CLI:
+Create a snippet using the command-line interface:
 
 ```bash
-reshell snippet add mkcd 'mkdir -p "$1" && cd "$1"' "Make and change directory"
+reshell snippet add <name> <code> [description]
 ```
 
-Or press `n` inside the **Snippets** tab of the TUI.
+Alternatively, open the dashboard (`reshell`), navigate to the **Snippets** tab, and press `n` to open the creation form.
 
-### Version History
+### Revision History
 
-When updating a snippet's code block through the TUI or CLI, the previous content is not discarded. Instead, it is timestamped and appended to the snippet's `history` block inside `snippets.toml`:
+When you update an existing snippet's code, reshell preserves the previous version. The historical script body is timestamped and stored in the `history` array inside `snippets.toml`:
 
 ```toml
 [[snippets]]
@@ -33,28 +33,26 @@ timestamp = "2026-06-28 17:00:00"
 code = "mkdir -p \"$1\""
 ```
 
-You can view the revision history or revert values by inspecting `snippets.toml` directly.
-
-### Actions:
-- **Copying**: Press `c` in the TUI to load the selected snippet directly to your system clipboard.
-- **Executing**: Press `x` in the TUI to run the snippet code inside a temporary subshell process, showing stdout and stderr before returning to the dashboard.
+### Dashboard Actions
+- **Copying (`c`)**: Copies the highlighted snippet code directly to the host system clipboard.
+- **Executing (`x`)**: Runs the snippet code in an isolated subshell process, printing stdout/stderr before returning to the dashboard.
 
 ---
 
-## Alias Manager
+## Aliases
 
-Aliases map simple shortcuts to longer shell expressions. They are defined inside `~/.config/reshell/aliases.toml`.
+Aliases map command shortcuts to longer terminal commands. They are stored in `~/.config/reshell/aliases.toml`.
 
-### Duplicate & Conflict Detection
+### Conflict Verification
 
-When adding an alias (via the TUI or `reshell alias add`), the manager runs conflict checks to prevent system breakages:
+When creating or modifying an alias, the engine verifies the name to prevent collision issues:
 
-1. **System Override Check**: Queries the path via `exec.LookPath`. If the alias name overrides a binary (e.g. `ls`, `grep`, or `gs`), it prints a warning.
-2. **Custom Functions Collision**: Scans the `~/.config/reshell/functions/` directory. If a custom function exists with the same name, it raises a warning.
-3. **Duplicate Check**: Checks if the name is already in use by another active alias.
+1. **System Path Check**: Verifies if the alias name collides with an existing binary in your `$PATH` (e.g., `ls` or `grep`).
+2. **Function Verification**: Checks if a custom shell function is already registered with the same name.
+3. **Duplicate Check**: Checks for duplicates in your existing alias list.
 
-You can still define the alias if you want to force overrides, but the warning flags keep you informed.
+Warnings are displayed if conflicts are found, but you can override them if needed.
 
 ### Toggling State
 
-You do not need to delete an alias to disable it. Press `Space` in the **Aliases** tab of the TUI to toggle its `Enabled` state. Disabled aliases are omitted from the compiled output during the next `reshell apply` cycle.
+To temporarily disable an alias, highlight it in the **Aliases** tab of the dashboard and press `Space`. Disabled aliases are excluded from the compiled configuration script during the next `reshell apply` execution.
