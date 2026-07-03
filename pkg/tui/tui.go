@@ -82,6 +82,9 @@ type model struct {
 	workflowsData []config.Workflow
 	envData       []config.EnvVar
 	gitData       *git.GitConfig
+	gitCommits    []git.Commit
+	gitHistoryView bool
+	gitSelectedIdx int
 	packagesData  []string
 	pkgStatus     map[string]bool // pkg -> installed
 
@@ -333,10 +336,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "tab":
 			m.activeTab = (m.activeTab + 1) % 10
 			m.selectedIdx = 0
+			m.gitHistoryView = false
 
 		case "shift+tab":
 			m.activeTab = (m.activeTab - 1 + 10) % 10
 			m.selectedIdx = 0
+			m.gitHistoryView = false
 
 		case "ctrl+/", "ctrl+_":
 			m.activeTab = TabSearch
@@ -350,22 +355,44 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.applySettings()
 
 		case "up", "k":
-			if m.selectedIdx > 0 {
-				m.selectedIdx--
+			if m.activeTab == TabGit && m.gitHistoryView {
+				if m.gitSelectedIdx > 0 {
+					m.gitSelectedIdx--
+				} else {
+					m.gitSelectedIdx = len(m.gitCommits) - 1
+					if m.gitSelectedIdx < 0 {
+						m.gitSelectedIdx = 0
+					}
+				}
 			} else {
-				m.selectedIdx = m.maxListIndex()
-				if m.selectedIdx < 0 {
-					m.selectedIdx = 0
+				if m.selectedIdx > 0 {
+					m.selectedIdx--
+				} else {
+					m.selectedIdx = m.maxListIndex()
+					if m.selectedIdx < 0 {
+						m.selectedIdx = 0
+					}
 				}
 			}
 
 		case "down", "j":
-			maxIdx := m.maxListIndex()
-			if maxIdx >= 0 {
-				if m.selectedIdx < maxIdx {
-					m.selectedIdx++
-				} else {
-					m.selectedIdx = 0
+			if m.activeTab == TabGit && m.gitHistoryView {
+				maxIdx := len(m.gitCommits) - 1
+				if maxIdx >= 0 {
+					if m.gitSelectedIdx < maxIdx {
+						m.gitSelectedIdx++
+					} else {
+						m.gitSelectedIdx = 0
+					}
+				}
+			} else {
+				maxIdx := m.maxListIndex()
+				if maxIdx >= 0 {
+					if m.selectedIdx < maxIdx {
+						m.selectedIdx++
+					} else {
+						m.selectedIdx = 0
+					}
 				}
 			}
 
@@ -420,6 +447,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.installLogs = "Starting system package uninstaller...\n"
 					m.viewport.SetContent(m.installLogs)
 					return m, m.runSystemUninstaller()
+				}
+			}
+
+		case "h":
+			if m.activeTab == TabGit {
+				m.gitHistoryView = !m.gitHistoryView
+				m.gitSelectedIdx = 0
+				return m, nil
+			}
+
+		case "r", "enter":
+			if m.activeTab == TabGit && m.gitHistoryView && len(m.gitCommits) > 0 {
+				selectedCommit := m.gitCommits[m.gitSelectedIdx]
+				err := git.RevertToCommit(selectedCommit.Hash)
+				if err != nil {
+					m.showStatus(fmt.Sprintf("Revert failed: %v", err), 3*time.Second)
+				} else {
+					m.loadData()
+					m.showStatus(fmt.Sprintf("Reverted workspace to commit %s!", selectedCommit.Hash), 3*time.Second)
+					return m, m.applySettings()
 				}
 			}
 		}

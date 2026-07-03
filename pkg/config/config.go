@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/pelletier/go-toml/v2"
+	"reshell/pkg/git"
 )
 
 // Config represents the global reshell configuration.
@@ -157,7 +158,13 @@ func SaveTOMLFile(filename string, v interface{}) error {
 		return err
 	}
 
-	return os.WriteFile(filePath, data, 0644)
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
+		return err
+	}
+
+	// Auto-commit configurations to version control
+	_ = git.CommitWorkspace("Update config: " + filename)
+	return nil
 }
 
 // LoadConfig loads the global config.toml.

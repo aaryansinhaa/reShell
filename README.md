@@ -41,7 +41,8 @@ graph TD
 - **Workspace Workflows**: Non-blocking, multi-step command and browser automation routines.
 - **Cross-Platform Package Manager**: Asynchronously installs and uninstalls host packages on Linux, macOS, and Windows with secure sudo password piping.
 - **Shell Compiler**: Generates optimized setup scripts and automatically registers startup hooks in `.bashrc`, `.zshrc`, or `config.fish`.
-- **Portable Configurations**: Import or export configuration directories as a single TOML manifest or ZIP file.
+- **Portable Configurations**: Import or export configuration directories as a single TOML manifest. Configuration merges use a **Last-Write-Wins** policy, where matching incoming elements overwrite existing local settings.
+- **Workspace Version Control**: Automatically tracks configuration files and custom scripts in a local Git repository, with TUI controls to view history and revert changes.
 
 ---
 

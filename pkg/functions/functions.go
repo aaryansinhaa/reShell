@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reshell/pkg/config"
+	"reshell/pkg/git"
 	"strings"
 )
 
@@ -24,7 +25,12 @@ func CreateOrUpdate(name, code string) error {
 	}
 
 	path := filepath.Join(funcDir, filename)
-	return os.WriteFile(path, []byte(code), 0755)
+	if err := os.WriteFile(path, []byte(code), 0755); err != nil {
+		return err
+	}
+
+	_ = git.CommitWorkspace("Update custom function: " + name)
+	return nil
 }
 
 // Get reads the function file code contents.
@@ -66,6 +72,8 @@ func Remove(name string) error {
 	if errSh != nil && errFish != nil {
 		return fmt.Errorf("function '%s' not found", name)
 	}
+
+	_ = git.CommitWorkspace("Remove custom function: " + name)
 	return nil
 }
 

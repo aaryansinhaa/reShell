@@ -91,7 +91,11 @@ func (c ChromeComponent) HelpView(m model) string {
 	case TabEnv:
 		keys = append(keys, "n: Add variable", "e: Edit variable", "d: Delete", "Space: Toggle enable/disable")
 	case TabGit:
-		// git configuration view is read-only global overview
+		if m.gitHistoryView {
+			keys = append(keys, "h: Config view", "Up/Down: Nav commits", "r/Enter: Revert to version")
+		} else {
+			keys = append(keys, "h: History view")
+		}
 	}
 
 	return HelpStyle.Width(m.width - 4).Render(strings.Join(keys, "  |  "))

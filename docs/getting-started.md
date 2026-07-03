@@ -6,7 +6,7 @@ This guide covers requirements, installation, shell profile integration, and imp
 
 - **Go**: Version 1.22 or higher.
 - **Operating Systems**: Linux, macOS, or Windows (via PowerShell or Git Bash).
-- **Git**: Required for importing marketplace configuration packs.
+- **Git**: Required for configuration version control and importing marketplace packs.
 
 ---
 
@@ -65,6 +65,13 @@ reshell clean
 
 To prevent configuration drift, you can export and import your workspace configuration as a unified TOML manifest or back up the raw config folder.
 
+### Conflict Resolution (Last-Write-Wins Policy)
+
+reshell uses a **Last-Write-Wins (LWW)** conflict resolution policy when merging configurations:
+- **Manifest Imports (`reshell import`)**: Overwrites the existing local configurations with the contents of the imported TOML manifest file.
+- **Marketplace Packs (`reshell install`)**: Merges configurations item-by-item. If an imported alias, environment variable, or snippet matches an existing local key, the imported value overwrites the local one.
+- **Git Version Control**: Since reshell automatically commits all changes under `~/.config/reshell/`, you can inspect diffs and resolve conflicts or revert undesired overwrites using standard Git command-line tools.
+
 ### Exporting Configurations
 
 To export environment variables, aliases, snippets, package lists, and workflows into a single TOML manifest:
@@ -103,5 +110,7 @@ reshell
 - `Space`: Toggle the active state of an environment variable or alias.
 - `c`: Copy the selected script snippet to the system clipboard.
 - `x`: Execute the selected script or workflow.
+- `h` (inside Git tab): Toggle between global git configuration and local repository version history.
+- `r` or `Enter` (inside Git history view): Revert configuration files to the selected revision.
 - `Ctrl+A`: Run `reshell apply` to compile and load configurations.
 - `q` or `Ctrl+C`: Exit the interface.

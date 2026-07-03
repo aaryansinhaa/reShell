@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"reshell/pkg/config"
+	"reshell/pkg/git"
 	"strings"
 	"time"
 )
@@ -21,7 +22,7 @@ type Script struct {
 	Description string   `json:"description"`
 }
 
-// CreateOrUpdate writes a script body under ~/.config/reshell/scripts/<category>/<name>.sh.
+// CreateOrUpdate writes the script body under ~/.config/reshell/scripts/<category>/<name>.sh.
 func CreateOrUpdate(category, name, code string) error {
 	scriptsDir, err := config.GetScriptsDir()
 	if err != nil {
@@ -34,7 +35,12 @@ func CreateOrUpdate(category, name, code string) error {
 	}
 
 	path := filepath.Join(catDir, name+".sh")
-	return os.WriteFile(path, []byte(code), 0755)
+	if err := os.WriteFile(path, []byte(code), 0755); err != nil {
+		return err
+	}
+
+	_ = git.CommitWorkspace(fmt.Sprintf("Update script: %s/%s", category, name))
+	return nil
 }
 
 // Get reads the content of a script.
@@ -71,6 +77,7 @@ func Remove(category, name string) error {
 		_ = os.Remove(catDir)
 	}
 
+	_ = git.CommitWorkspace(fmt.Sprintf("Remove script: %s/%s", category, name))
 	return nil
 }
 

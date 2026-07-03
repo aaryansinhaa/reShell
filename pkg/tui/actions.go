@@ -432,6 +432,9 @@ func (m *model) loadData() {
 	if g, err := git.GetConfig(); err == nil {
 		m.gitData = g
 	}
+	if history, err := git.GetHistory(); err == nil {
+		m.gitCommits = history
+	}
 
 	for _, pkg := range m.packagesData {
 		m.pkgStatus[pkg] = packages.IsInstalled(pkg)
