@@ -1,6 +1,6 @@
 # reshell Documentation
 
-[![GitHub stars](https://img.shields.io/github/stars/aaryansinhaa/reshell?style=social)](https://github.com/aaryansinhaa/reshell)
+[![Star on GitHub](https://img.shields.io/badge/GitHub-Star_on_GitHub-blue?logo=github&style=social)](https://github.com/aaryansinhaa/reshell)
 
 Welcome to the reshell documentation. reshell is a portable configuration and command-line workspace manager for developers.
 
