@@ -442,7 +442,20 @@ func init() {
 		},
 	}
 
-	gitCmd.AddCommand(gitApplyCmd)
+	gitClearCmd := &cobra.Command{
+		Use:   "clear",
+		Short: "Clear version control history for the active profile",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := git.ClearHistory()
+			if err != nil {
+				return err
+			}
+			fmt.Println("reshell: Version control history cleared successfully for the active profile!")
+			return nil
+		},
+	}
+
+	gitCmd.AddCommand(gitApplyCmd, gitClearCmd)
 
 	// --- export and import commands ---
 	exportCmd := &cobra.Command{

@@ -148,3 +148,19 @@ You can also control profiles directly from the command line:
   ```bash
   reshell profile delete work
   ```
+
+### Isolated Version Control Histories
+
+Each configuration profile maintains its own **completely isolated Git history**:
+- Custom profiles store their version histories inside `~/.config/reshell/profiles/<name>/.git/`.
+- The default profile stores its history at the root of `~/.config/reshell/.git/` and automatically ignores custom profiles to prevent overlap.
+- Swapping profiles switches the TUI History panel to show commits specific to that profile only.
+
+#### Clearing Version History
+
+If you want to discard your profile's version control history and start fresh with a clean initial snapshot:
+- **TUI Dashboard**: Go to the **Git** tab, toggle **History View** (using `h`), and press **`c`**.
+- **CLI Terminal**: Run the following subcommand:
+  ```bash
+  reshell git clear
+  ```

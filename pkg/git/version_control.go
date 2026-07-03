@@ -72,6 +72,11 @@ func InitWorkspace() error {
 	// 2. Write .gitignore
 	ignorePath := filepath.Join(dir, ".gitignore")
 	gitignoreContent := "logs/\nshell/\n"
+	home, _ := os.UserHomeDir()
+	baseDir := filepath.Join(home, ".config", "reshell")
+	if dir == baseDir {
+		gitignoreContent += "profiles/\n"
+	}
 	if err := os.WriteFile(ignorePath, []byte(gitignoreContent), 0644); err != nil {
 		return fmt.Errorf("failed to write .gitignore: %w", err)
 	}
@@ -218,7 +223,23 @@ func runGitCmdInDir(dir string, args ...string) (string, error) {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		return stdout.String() + stderr.String(), fmt.Errorf("git error: %s (stderr: %s)", err.Error(), stderr.String())
+		return stdout.String(), fmt.Errorf("%s: %s", err.Error(), stderr.String())
 	}
 	return stdout.String(), nil
+}
+
+// ClearHistory deletes the .git folder and re-initializes it with a clean initial commit.
+func ClearHistory() error {
+	dir, err := getConfigDir()
+	if err != nil {
+		return err
+	}
+
+	gitDir := filepath.Join(dir, ".git")
+	if err := os.RemoveAll(gitDir); err != nil {
+		return fmt.Errorf("failed to clear git history directory: %w", err)
+	}
+
+	// Re-initialize workspace
+	return InitWorkspace()
 }

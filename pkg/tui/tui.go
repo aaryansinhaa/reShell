@@ -416,7 +416,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.deleteSelected()
 
 		case "c":
-			m.copySelected()
+			if m.activeTab == TabGit && m.gitHistoryView {
+				err := git.ClearHistory()
+				if err != nil {
+					m.showStatus(fmt.Sprintf("Failed to clear history: %v", err), 3*time.Second)
+				} else {
+					m.loadData()
+					m.gitSelectedIdx = 0
+					m.showStatus("Version history cleared successfully!", 3*time.Second)
+				}
+			} else {
+				m.copySelected()
+			}
 
 		case "x":
 			cmd := m.executeSelected()

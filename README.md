@@ -87,6 +87,7 @@ The setup command installs the `reshell` executable to `~/.local/bin/` and regis
 | `reshell install [repo-url]` | Installs configuration packs or system packages |
 | `reshell env add <name> <value>` | Registers environment variables |
 | `reshell git apply` | Applies git profiles globally |
+| `reshell git clear` | Clears version control history for the active profile |
 | `reshell export <toml-path>` | Exports configurations into a single TOML manifest |
 | `reshell import <toml-path>` | Imports configurations from a TOML manifest |
 | `reshell profile list` | Lists all configuration profiles |

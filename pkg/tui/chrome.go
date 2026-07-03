@@ -93,7 +93,7 @@ func (c ChromeComponent) HelpView(m model) string {
 		keys = append(keys, "n: Add variable", "e: Edit variable", "d: Delete", "Space: Toggle enable/disable")
 	case TabGit:
 		if m.gitHistoryView {
-			keys = append(keys, "h: Config view", "Up/Down: Nav commits", "r/Enter: Revert to version")
+			keys = append(keys, "h: Config view", "Up/Down: Nav commits", "r/Enter: Revert to version", "c: Clear history")
 		} else {
 			keys = append(keys, "h: History view")
 		}
