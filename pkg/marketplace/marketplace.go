@@ -29,8 +29,9 @@ type MarketplaceManifest struct {
 	} `toml:"config"`
 }
 
-// Install clons the git repo, reads its reshell.toml manifest, and merges assets.
-func Install(repoURL string) (*MarketplaceManifest, error) {
+// FetchManifest clones the git repository to a temporary directory, parses the reshell.toml manifest, and returns it.
+// The caller is responsible for deleting the tempDir (using os.RemoveAll).
+func FetchManifest(repoURL string) (*MarketplaceManifest, string, error) {
 	// Normalize URL, e.g. github.com/username/repo -> https://github.com/username/repo
 	fullURL := repoURL
 	if !os.IsPathSeparator(repoURL[0]) && !strings.Contains(repoURL, "://") {
@@ -39,46 +40,53 @@ func Install(repoURL string) (*MarketplaceManifest, error) {
 
 	tempDir, err := os.MkdirTemp("", "reshell-marketplace-*")
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	defer os.RemoveAll(tempDir)
 
 	// 1. Clone repository
 	cmd := exec.Command("git", "clone", "--depth", "1", fullURL, tempDir)
 	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("failed to clone repository '%s': %w", repoURL, err)
+		os.RemoveAll(tempDir)
+		return nil, "", fmt.Errorf("failed to clone repository '%s': %w", repoURL, err)
 	}
 
 	// 2. Read reshell.toml manifest
 	manifestPath := filepath.Join(tempDir, "reshell.toml")
 	manifestData, err := os.ReadFile(manifestPath)
 	if err != nil {
-		return nil, fmt.Errorf("repository does not contain a reshell.toml: %w", err)
+		os.RemoveAll(tempDir)
+		return nil, "", fmt.Errorf("repository does not contain a reshell.toml: %w", err)
 	}
 
 	var manifest MarketplaceManifest
 	if err := toml.Unmarshal(manifestData, &manifest); err != nil {
-		return nil, fmt.Errorf("invalid reshell.toml format: %w", err)
+		os.RemoveAll(tempDir)
+		return nil, "", fmt.Errorf("invalid reshell.toml format: %w", err)
 	}
 
+	return &manifest, tempDir, nil
+}
+
+// MergeManifest merges the configuration, functions, and scripts from the cloned repository.
+func MergeManifest(manifest *MarketplaceManifest, tempDir string) error {
 	// 3. Merge environment variables
 	for _, v := range manifest.Variables {
 		if err := env.AddOrUpdate(v.Name, v.Value, v.Description, v.Enabled); err != nil {
-			return nil, fmt.Errorf("failed to merge env var '%s': %w", v.Name, err)
+			return fmt.Errorf("failed to merge env var '%s': %w", v.Name, err)
 		}
 	}
 
 	// 4. Merge aliases
 	for _, al := range manifest.Aliases {
 		if err := aliases.AddOrUpdate(al.Name, al.Value, al.Description, al.Shell, al.Enabled); err != nil {
-			return nil, fmt.Errorf("failed to merge alias '%s': %w", al.Name, err)
+			return fmt.Errorf("failed to merge alias '%s': %w", al.Name, err)
 		}
 	}
 
 	// 5. Merge snippets
 	for _, snip := range manifest.Snippets {
 		if err := snippets.AddOrUpdate(snip.Name, snip.Code, snip.Description, snip.Tags, snip.Language, snip.Shell, snip.Favorite); err != nil {
-			return nil, fmt.Errorf("failed to merge snippet '%s': %w", snip.Name, err)
+			return fmt.Errorf("failed to merge snippet '%s': %w", snip.Name, err)
 		}
 	}
 
@@ -149,5 +157,20 @@ func Install(repoURL string) (*MarketplaceManifest, error) {
 		})
 	}
 
-	return &manifest, nil
+	return nil
+}
+
+// Install clones the git repo, reads its reshell.toml manifest, and merges assets.
+func Install(repoURL string) (*MarketplaceManifest, error) {
+	manifest, tempDir, err := FetchManifest(repoURL)
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(tempDir)
+
+	if err := MergeManifest(manifest, tempDir); err != nil {
+		return nil, err
+	}
+
+	return manifest, nil
 }

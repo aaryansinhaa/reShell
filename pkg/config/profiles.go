@@ -31,6 +31,19 @@ func GetActiveProfile() (string, error) {
 	return profile, nil
 }
 
+// IsValidProfileName verifies if the profile name contains only alphanumeric characters, underscores, and hyphens.
+func IsValidProfileName(name string) bool {
+	if len(name) == 0 || len(name) > 64 {
+		return false
+	}
+	for _, r := range name {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' || r == '-') {
+			return false
+		}
+	}
+	return true
+}
+
 // SetActiveProfile updates the active_profile.txt state file.
 func SetActiveProfile(name string) error {
 	home, err := os.UserHomeDir()
@@ -43,6 +56,10 @@ func SetActiveProfile(name string) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		name = "default"
+	}
+
+	if name != "default" && !IsValidProfileName(name) {
+		return fmt.Errorf("invalid profile name: %s (must contain only alphanumeric characters, underscores, and hyphens)", name)
 	}
 
 	// Make sure the base config dir exists before writing
@@ -88,6 +105,10 @@ func CreateProfile(name string) error {
 		return fmt.Errorf("invalid profile name: %s", name)
 	}
 
+	if !IsValidProfileName(name) {
+		return fmt.Errorf("invalid profile name: %s (must contain only alphanumeric characters, underscores, and hyphens)", name)
+	}
+
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -118,6 +139,10 @@ func DeleteProfile(name string) error {
 	name = strings.TrimSpace(name)
 	if name == "" || name == "default" {
 		return fmt.Errorf("cannot delete default profile")
+	}
+
+	if !IsValidProfileName(name) {
+		return fmt.Errorf("invalid profile name: %s (must contain only alphanumeric characters, underscores, and hyphens)", name)
 	}
 
 	active, err := GetActiveProfile()

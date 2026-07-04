@@ -108,3 +108,40 @@ func TestProfileManagement(t *testing.T) {
 		t.Errorf("Expected work profile directory to be removed")
 	}
 }
+
+func TestProfileValidation(t *testing.T) {
+	_ = setupProfilesTestHome(t)
+
+	// 1. Test IsValidProfileName
+	validNames := []string{"work", "school-projects", "my_workspace_123"}
+	for _, n := range validNames {
+		if !IsValidProfileName(n) {
+			t.Errorf("expected profile name %q to be valid", n)
+		}
+	}
+
+	invalidNames := []string{"work/space", "school..projects", "../danger", "my profile", "work?", "default"}
+	for _, n := range invalidNames {
+		if n != "default" && IsValidProfileName(n) {
+			t.Errorf("expected profile name %q to be invalid", n)
+		}
+	}
+
+	// 2. Test CreateProfile with traversal
+	err := CreateProfile("../traversal")
+	if err == nil {
+		t.Error("expected CreateProfile to fail with traversal path")
+	}
+
+	// 3. Test SetActiveProfile with traversal
+	err = SetActiveProfile("../traversal")
+	if err == nil {
+		t.Error("expected SetActiveProfile to fail with traversal path")
+	}
+
+	// 4. Test DeleteProfile with traversal
+	err = DeleteProfile("../traversal")
+	if err == nil {
+		t.Error("expected DeleteProfile to fail with traversal path")
+	}
+}

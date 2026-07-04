@@ -2,13 +2,37 @@ package env
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"reshell/pkg/config"
 	"strings"
 )
 
+// IsValidEnvName verifies if the environment variable name matches ^[a-zA-Z_][a-zA-Z0-9_]*$.
+func IsValidEnvName(name string) bool {
+	if len(name) == 0 {
+		return false
+	}
+	for i, r := range name {
+		if i == 0 {
+			if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || r == '_') {
+				return false
+			}
+		} else {
+			if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_') {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 // AddOrUpdate adds or updates an environment variable.
 func AddOrUpdate(name, value, desc string, enabled bool) error {
+	if !IsValidEnvName(name) {
+		return fmt.Errorf("invalid environment variable name %q: must contain only alphanumeric characters or underscores, and cannot start with a digit", name)
+	}
+
 	cfg, err := config.LoadEnv()
 	if err != nil {
 		return err

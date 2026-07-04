@@ -385,11 +385,11 @@ func (m *model) listenPackageInstall() tea.Cmd {
 	}
 }
 
-func (m *model) runMarketplaceInstaller() tea.Cmd {
+func (m *model) runMarketplaceFetcher() tea.Cmd {
 	url := m.marketplaceURL
 	return func() tea.Msg {
-		manifest, err := marketplace.Install(url)
-		return marketplaceFinishedMsg{manifest: manifest, err: err}
+		manifest, tempDir, err := marketplace.FetchManifest(url)
+		return marketplaceFetchedMsg{manifest: manifest, tempDir: tempDir, err: err}
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reshell/pkg/config"
+	"strings"
 	"time"
 )
 
@@ -107,7 +108,15 @@ func Run(wf *config.Workflow, statusChan chan<- StepStatus) {
 		}
 
 		// Set up execution command
-		cmd := exec.Command("bash", "-c", step.Command)
+		shellName := "bash"
+		if shellEnv := os.Getenv("SHELL"); shellEnv != "" {
+			if strings.Contains(shellEnv, "zsh") {
+				shellName = "zsh"
+			} else if strings.Contains(shellEnv, "fish") {
+				shellName = "fish"
+			}
+		}
+		cmd := exec.Command(shellName, "-c", step.Command)
 		if step.Dir != "" {
 			expandedDir := os.ExpandEnv(step.Dir)
 			if len(expandedDir) > 0 && expandedDir[0] == '~' {

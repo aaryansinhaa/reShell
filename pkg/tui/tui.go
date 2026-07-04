@@ -53,6 +53,11 @@ type marketplaceFinishedMsg struct {
 	manifest *marketplace.MarketplaceManifest
 	err      error
 }
+type marketplaceFetchedMsg struct {
+	manifest *marketplace.MarketplaceManifest
+	tempDir  string
+	err      error
+}
 type applyFinishedMsg struct {
 	err error
 }
@@ -114,6 +119,8 @@ type model struct {
 
 	// Marketplace installer state
 	marketplaceURL string
+	fetchedManifest *marketplace.MarketplaceManifest
+	fetchedTempDir  string
 
 	// Modular sub-components
 	search      SearchComponent
@@ -267,6 +274,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.loadData()
 			m.showStatus("Marketplace configuration pack imported successfully!", 3*time.Second)
+		}
+
+	case marketplaceFetchedMsg:
+		if msg.err != nil {
+			m.inputMode = false
+			m.showStatus("Failed to fetch pack: "+msg.err.Error(), 4*time.Second)
+		} else {
+			m.fetchedManifest = msg.manifest
+			m.fetchedTempDir = msg.tempDir
+			m.inputMode = true
+			m.formType = "marketplace_confirm"
+			m.formTitle = fmt.Sprintf("Confirm Install: %s", msg.manifest.Package.Name)
+			m.formInputs = make([]textinput.Model, 1)
+			m.formInputs[0] = textinput.New()
+			m.formInputs[0].Placeholder = "Type 'yes' to confirm and install, or 'no'/'esc' to cancel"
+			m.formInputs[0].Focus()
 		}
 
 	case applyFinishedMsg:
@@ -460,7 +483,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "i":
 			if m.activeTab == TabPackages {
-				m.initFormForSudo()
+				// Check if sudo credentials are cached
+				if exec.Command("sudo", "-n", "true").Run() == nil {
+					m.sudoPassword = ""
+					m.viewingLogs = true
+					m.installLogs = "Starting Synchronized package installer...\n"
+					m.viewport.SetContent(m.installLogs)
+					return m, m.runSynchronizedInstaller()
+				} else {
+					m.initFormForSudo()
+				}
 			} else if m.activeTab == TabMarketplace {
 				m.initFormForMarketplace()
 			}
@@ -470,7 +502,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				_, manager := packages.DetectOS()
 				needsSudo := manager == "apt" || manager == "dnf" || manager == "pacman"
 				if needsSudo {
-					m.initFormForSudoUninstall()
+					// Check if sudo credentials are cached
+					if exec.Command("sudo", "-n", "true").Run() == nil {
+						m.sudoPassword = ""
+						m.viewingLogs = true
+						m.installLogs = "Starting system package uninstaller...\n"
+						m.viewport.SetContent(m.installLogs)
+						return m, m.runSystemUninstaller()
+					} else {
+						m.initFormForSudoUninstall()
+					}
 				} else {
 					m.viewingLogs = true
 					m.installLogs = "Starting system package uninstaller...\n"

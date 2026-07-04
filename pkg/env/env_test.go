@@ -56,3 +56,39 @@ func TestEnvSaveLoadToggleRemove(t *testing.T) {
 		t.Errorf("Expected variable to be removed, got %d variables", len(cfg.Variables))
 	}
 }
+
+func TestEnvValidation(t *testing.T) {
+	tempHome, err := os.MkdirTemp("", "reshell-test-home-*")
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempHome)
+
+	oldHome := os.Getenv("HOME")
+	os.Setenv("HOME", tempHome)
+	defer os.Setenv("HOME", oldHome)
+
+	// Valid names
+	validNames := []string{"MY_VAR", "var123", "_var"}
+	for _, n := range validNames {
+		if !IsValidEnvName(n) {
+			t.Errorf("expected env var name %q to be valid", n)
+		}
+		err = AddOrUpdate(n, "value", "desc", true)
+		if err != nil {
+			t.Errorf("AddOrUpdate failed for valid name %q: %v", n, err)
+		}
+	}
+
+	// Invalid names
+	invalidNames := []string{"123var", "MY-VAR", "var;rm", "var space", "var\n"}
+	for _, n := range invalidNames {
+		if IsValidEnvName(n) {
+			t.Errorf("expected env var name %q to be invalid", n)
+		}
+		err = AddOrUpdate(n, "value", "desc", true)
+		if err == nil {
+			t.Errorf("expected AddOrUpdate to fail for invalid name %q", n)
+		}
+	}
+}

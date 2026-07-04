@@ -10,8 +10,25 @@ import (
 	"strings"
 )
 
+// IsValidAliasName verifies if the alias name contains only alphanumeric characters, underscores, hyphens, and periods.
+func IsValidAliasName(name string) bool {
+	if len(name) == 0 || len(name) > 64 {
+		return false
+	}
+	for _, r := range name {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' || r == '-' || r == '.') {
+			return false
+		}
+	}
+	return true
+}
+
 // AddOrUpdate creates or updates an alias.
 func AddOrUpdate(name, value, desc, shell string, enabled bool) error {
+	if !IsValidAliasName(name) {
+		return fmt.Errorf("invalid alias name %q: must contain only alphanumeric characters, underscores, hyphens, or periods", name)
+	}
+
 	cfg, err := config.LoadAliases()
 	if err != nil {
 		return err

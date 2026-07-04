@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reshell/pkg/aliases"
 	"reshell/pkg/config"
@@ -314,13 +315,65 @@ func init() {
 			if len(args) > 0 {
 				// Marketplace package install
 				target := args[0]
-				fmt.Printf("Installing marketplace package from '%s'...\n", target)
-				manifest, err := marketplace.Install(target)
+				fmt.Printf("Fetching marketplace package from '%s'...\n", target)
+				manifest, tempDir, err := marketplace.FetchManifest(target)
 				if err != nil {
 					return err
 				}
-				fmt.Printf("Marketplace package '%s' installed successfully! Description: %s\n", manifest.Package.Name, manifest.Package.Description)
-				fmt.Println("Run 'reshell apply' to bind new environments and configurations.")
+				defer os.RemoveAll(tempDir)
+
+				fmt.Printf("\nMarketplace Package: %s\n", manifest.Package.Name)
+				fmt.Printf("Description:         %s\n", manifest.Package.Description)
+				fmt.Println("\nThis package will configure:")
+				fmt.Printf(" - %d environment variables\n", len(manifest.Variables))
+				fmt.Printf(" - %d command aliases\n", len(manifest.Aliases))
+				fmt.Printf(" - %d code snippets\n", len(manifest.Snippets))
+				fmt.Printf(" - %d system package dependencies\n", len(manifest.Config.Packages))
+
+				funcsCount := 0
+				funcsSourceDir := filepath.Join(tempDir, "functions")
+				if files, err := os.ReadDir(funcsSourceDir); err == nil {
+					for _, f := range files {
+						if !f.IsDir() {
+							funcsCount++
+						}
+					}
+				}
+				fmt.Printf(" - %d custom functions\n", funcsCount)
+
+				scriptsCount := 0
+				scriptsSourceDir := filepath.Join(tempDir, "scripts")
+				_ = filepath.Walk(scriptsSourceDir, func(path string, info os.FileInfo, err error) error {
+					if err == nil && !info.IsDir() {
+						scriptsCount++
+					}
+					return nil
+				})
+				fmt.Printf(" - %d library scripts\n", scriptsCount)
+
+				fmt.Println("\nWARNING: Installing third-party configuration packs merges them directly into your local environment and copies scripts/functions that will run on your machine.")
+				fmt.Print("Do you want to proceed with the installation? (y/N): ")
+				var response string
+				fmt.Scanln(&response)
+				response = strings.ToLower(strings.TrimSpace(response))
+				if response != "y" && response != "yes" {
+					fmt.Println("Installation aborted.")
+					return nil
+				}
+
+				if err := marketplace.MergeManifest(manifest, tempDir); err != nil {
+					return err
+				}
+
+				fmt.Printf("\nMarketplace package '%s' installed successfully!\n", manifest.Package.Name)
+				fmt.Println("Summary of changes:")
+				fmt.Printf(" - Environment Variables: %d configured\n", len(manifest.Variables))
+				fmt.Printf(" - Command Aliases:       %d configured\n", len(manifest.Aliases))
+				fmt.Printf(" - Code Snippets:          %d configured\n", len(manifest.Snippets))
+				fmt.Printf(" - System Packages:       %d configured\n", len(manifest.Config.Packages))
+				fmt.Printf(" - Custom Functions:      %d configured\n", funcsCount)
+				fmt.Printf(" - Library Scripts:       %d configured\n", scriptsCount)
+				fmt.Println("\nRun 'reshell apply' to bind new environments and configurations.")
 				return nil
 			}
 
@@ -342,13 +395,24 @@ func init() {
 			needsSudo := manager == "apt" || manager == "dnf" || manager == "pacman"
 			sudoPassword := ""
 			if needsSudo {
-				fmt.Print("This operation requires superuser privileges. Enter sudo password: ")
-				pwBytes, err := term.ReadPassword(int(syscall.Stdin))
-				if err != nil {
-					return fmt.Errorf("failed to read password: %w", err)
+				// Check if sudo credentials are cached
+				sudoCached := false
+				chkCmd := exec.Command("sudo", "-n", "true")
+				if err := chkCmd.Run(); err == nil {
+					sudoCached = true
 				}
-				fmt.Println()
-				sudoPassword = string(pwBytes)
+
+				if !sudoCached {
+					fmt.Print("This operation requires superuser privileges. Enter sudo password: ")
+					pwBytes, err := term.ReadPassword(int(syscall.Stdin))
+					if err != nil {
+						return fmt.Errorf("failed to read password: %w", err)
+					}
+					fmt.Println()
+					sudoPassword = string(pwBytes)
+				} else {
+					fmt.Println("reshell: Cached sudo credentials detected. Bypassing password prompt.")
+				}
 			}
 
 			for _, pkg := range cfg.Packages {

@@ -83,3 +83,39 @@ func TestAliasConflictDetection(t *testing.T) {
 		t.Error("Expected conflict on system command override 'ls'")
 	}
 }
+
+func TestAliasValidation(t *testing.T) {
+	tempHome, err := os.MkdirTemp("", "reshell-test-home-*")
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempHome)
+
+	oldHome := os.Getenv("HOME")
+	os.Setenv("HOME", tempHome)
+	defer os.Setenv("HOME", oldHome)
+
+	// Valid names
+	validNames := []string{"git-status", "gs_123", "my.alias"}
+	for _, n := range validNames {
+		if !IsValidAliasName(n) {
+			t.Errorf("expected alias name %q to be valid", n)
+		}
+		err = AddOrUpdate(n, "echo 1", "desc", "all", true)
+		if err != nil {
+			t.Errorf("AddOrUpdate failed for valid name %q: %v", n, err)
+		}
+	}
+
+	// Invalid names
+	invalidNames := []string{"git status", "gs;rm", "my=alias", "gs\n", "gs\\"}
+	for _, n := range invalidNames {
+		if IsValidAliasName(n) {
+			t.Errorf("expected alias name %q to be invalid", n)
+		}
+		err = AddOrUpdate(n, "echo 1", "desc", "all", true)
+		if err == nil {
+			t.Errorf("expected AddOrUpdate to fail for invalid name %q", n)
+		}
+	}
+}

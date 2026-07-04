@@ -2,12 +2,15 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"reshell/pkg/aliases"
 	"reshell/pkg/config"
 	"reshell/pkg/env"
 	"reshell/pkg/packages"
 	"reshell/pkg/shell"
+	"reshell/pkg/marketplace"
 	"reshell/pkg/snippets"
 	"reshell/pkg/workflows"
 	"strings"
@@ -244,6 +247,11 @@ func (m *model) initFormForEditEnv(selected config.EnvVar) {
 func (m *model) handleFormKey(msg tea.KeyMsg) tea.Cmd {
 	switch msg.String() {
 	case "esc":
+		if m.formType == "marketplace_confirm" && m.fetchedTempDir != "" {
+			os.RemoveAll(m.fetchedTempDir)
+			m.fetchedTempDir = ""
+			m.fetchedManifest = nil
+		}
 		m.inputMode = false
 		return nil
 	case "tab", "down":
@@ -467,7 +475,64 @@ fi`,
 	case "marketplace":
 		m.marketplaceURL = m.formInputs[0].Value()
 		if m.marketplaceURL != "" {
-			return m.runMarketplaceInstaller()
+			m.inputMode = true
+			m.formType = "marketplace_fetching"
+			m.formTitle = "Fetching marketplace pack..."
+			m.formInputs = nil
+			return m.runMarketplaceFetcher()
+		}
+
+	case "marketplace_confirm":
+		confirmVal := strings.ToLower(strings.TrimSpace(m.formInputs[0].Value()))
+		if confirmVal == "yes" || confirmVal == "y" {
+			m.inputMode = false
+
+			// Compute how many items are being merged for the success summary
+			varsCount := len(m.fetchedManifest.Variables)
+			aliasesCount := len(m.fetchedManifest.Aliases)
+			snippetsCount := len(m.fetchedManifest.Snippets)
+			pkgsCount := len(m.fetchedManifest.Config.Packages)
+
+			funcsCount := 0
+			funcsSourceDir := filepath.Join(m.fetchedTempDir, "functions")
+			if files, err := os.ReadDir(funcsSourceDir); err == nil {
+				for _, f := range files {
+					if !f.IsDir() {
+						funcsCount++
+					}
+				}
+			}
+
+			scriptsCount := 0
+			scriptsSourceDir := filepath.Join(m.fetchedTempDir, "scripts")
+			_ = filepath.Walk(scriptsSourceDir, func(path string, info os.FileInfo, err error) error {
+				if err == nil && !info.IsDir() {
+					scriptsCount++
+				}
+				return nil
+			})
+
+			err := marketplace.MergeManifest(m.fetchedManifest, m.fetchedTempDir)
+			os.RemoveAll(m.fetchedTempDir)
+			m.fetchedTempDir = ""
+			m.fetchedManifest = nil
+
+			if err != nil {
+				m.showStatus("Failed to install pack: "+err.Error(), 4*time.Second)
+			} else {
+				m.loadData()
+				summaryMsg := fmt.Sprintf("Imported pack successfully! Summary: +%d env vars, +%d aliases, +%d snippets, +%d packages, +%d functions, +%d scripts.",
+					varsCount, aliasesCount, snippetsCount, pkgsCount, funcsCount, scriptsCount)
+				m.showStatus(summaryMsg, 5*time.Second)
+			}
+		} else {
+			m.inputMode = false
+			if m.fetchedTempDir != "" {
+				os.RemoveAll(m.fetchedTempDir)
+				m.fetchedTempDir = ""
+			}
+			m.fetchedManifest = nil
+			m.showStatus("Installation cancelled.", 2*time.Second)
 		}
 	}
 
