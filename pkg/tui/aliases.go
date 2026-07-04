@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"reshell/pkg/aliases"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -20,8 +21,14 @@ func (a AliasesComponent) View(m model) string {
 	}
 
 	if availWidth >= 70 {
-		cardWidth := 40
-		leftWidth := availWidth - cardWidth - 2
+		leftWidth := availWidth * 3 / 8
+		if leftWidth < 30 {
+			leftWidth = 30
+		}
+		if leftWidth > 45 {
+			leftWidth = 45
+		}
+		cardWidth := availWidth - leftWidth - 2
 
 		start, end := m.getVisibleSlice(len(m.aliasesData))
 		var list []string
@@ -44,9 +51,11 @@ func (a AliasesComponent) View(m model) string {
 
 			status := "ok"
 			isOverride := false
-			if _, ok := aliases.DetectConflict(al.Name); ok && al.Enabled {
-				status = "⚠️ override"
-				isOverride = true
+			if warn, ok := aliases.DetectConflict(al.Name); ok && al.Enabled {
+				if !strings.HasPrefix(warn, "collides with another active alias") {
+					status = "⚠️ override"
+					isOverride = true
+				}
 			}
 
 			if !al.Enabled {
@@ -78,7 +87,9 @@ func (a AliasesComponent) View(m model) string {
 		selected := m.aliasesData[m.selectedIdx]
 		warnMsg := ""
 		if warn, ok := aliases.DetectConflict(selected.Name); ok && selected.Enabled {
-			warnMsg = "\n\n" + WarningLabel.Render("Conflict Warning: ") + warn
+			if !strings.HasPrefix(warn, "collides with another active alias") {
+				warnMsg = "\n\n" + WarningLabel.Render("Conflict Warning: ") + warn
+			}
 		}
 
 		preview := fmt.Sprintf("%s\n%s\n\nCommand: %s\nShell: %s\nEnabled: %t%s",
@@ -108,8 +119,10 @@ func (a AliasesComponent) View(m model) string {
 			displayValue := truncateString(value, availWidth-20)
 
 			status := ""
-			if _, ok := aliases.DetectConflict(al.Name); ok && al.Enabled {
-				status = " ⚠️"
+			if warn, ok := aliases.DetectConflict(al.Name); ok && al.Enabled {
+				if !strings.HasPrefix(warn, "collides with another active alias") {
+					status = " ⚠️"
+				}
 			}
 
 			if !al.Enabled {

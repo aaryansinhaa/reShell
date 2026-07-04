@@ -70,8 +70,14 @@ description = "Build and upload frontend dist"
 	}
 
 	if availWidth >= 70 {
-		cardWidth := 40
-		leftWidth := availWidth - cardWidth - 2
+		leftWidth := availWidth * 3 / 8
+		if leftWidth < 30 {
+			leftWidth = 30
+		}
+		if leftWidth > 45 {
+			leftWidth = 45
+		}
+		cardWidth := availWidth - leftWidth - 2
 
 		start, end := m.getVisibleSlice(len(m.workflowsData))
 		var list []string

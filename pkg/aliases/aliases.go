@@ -95,17 +95,7 @@ func Toggle(name string) error {
 // 2. An existing custom function name (in ~/.config/reshell/functions/)
 // 3. Another registered alias name
 func DetectConflict(name string) (string, bool) {
-	// 1. Check other active aliases
-	cfg, err := config.LoadAliases()
-	if err == nil {
-		for _, al := range cfg.Aliases {
-			if al.Name == name && al.Enabled {
-				return fmt.Sprintf("collides with another active alias: '%s=%s'", al.Name, al.Value), true
-			}
-		}
-	}
-
-	// 2. Check custom function files
+	// 1. Check custom function files
 	funcDir, err := config.GetFunctionsDir()
 	if err == nil {
 		files, err := os.ReadDir(funcDir)
@@ -120,9 +110,19 @@ func DetectConflict(name string) (string, bool) {
 		}
 	}
 
-	// 3. Check system utilities
+	// 2. Check system utilities
 	if path, err := exec.LookPath(name); err == nil {
 		return fmt.Sprintf("overrides system utility located at: %s", path), true
+	}
+
+	// 3. Check other active aliases
+	cfg, err := config.LoadAliases()
+	if err == nil {
+		for _, al := range cfg.Aliases {
+			if al.Name == name && al.Enabled {
+				return fmt.Sprintf("collides with another active alias: '%s=%s'", al.Name, al.Value), true
+			}
+		}
 	}
 
 	return "", false
