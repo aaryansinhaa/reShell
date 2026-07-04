@@ -20,14 +20,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Go (tip / development version)
+      - name: Set up Go (Stable version)
         uses: actions/setup-go@v5
         with:
-          go-version: 'tip'
+          go-version: 'stable'
 
       - name: Compile ReShell binary
         run: |
-          # Since setup-go tip installs the latest Go compiler, we can build the Linux binary directly
+          # Dynamically set go.mod version to match the runner's Go compiler version
+          RUNNER_GO_VERSION=$(go version | awk '{print $3}' | sed -E 's/go([0-9]+\.[0-9]+).*/\1/')
+          go mod edit -go=${RUNNER_GO_VERSION}
           CGO_ENABLED=0 GOOS=linux go build -o reshell .
 
       - name: Log in to the Container registry
