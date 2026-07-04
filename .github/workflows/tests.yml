@@ -26,5 +26,12 @@ jobs:
       - name: Build Binary
         run: go build -v ./...
 
-      - name: Run Unit Tests
-        run: go test -v -race ./...
+      - name: Run Unit Tests with Coverage
+        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.txt
+          fail_ci_if_error: false
