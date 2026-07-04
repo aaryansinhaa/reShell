@@ -3,6 +3,7 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/aaryansinhaa/reshell?color=00ADD8)](https://go.dev/)
 [![License](https://img.shields.io/github/license/aaryansinhaa/reshell?color=brightgreen)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](https://github.com/aaryansinhaa/reshell/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/aaryansinhaa/reshell?logo=codecov)](https://codecov.io/gh/aaryansinhaa/reshell)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blueviolet.svg)](https://github.com/aaryansinhaa/reshell/pulls)
 
 reshell is a portable developer environment and command-line workspace manager. It provides a terminal dashboard to configure, track, and synchronize aliases, script snippets, shell functions, environment variables, system packages, and git configurations from a single, version-controlled configuration directory.
