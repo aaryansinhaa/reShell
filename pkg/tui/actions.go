@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,6 +17,7 @@ import (
 	"reshell/pkg/snippets"
 	"reshell/pkg/workflows"
 	"strings"
+	"sync"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -215,6 +217,56 @@ func (m *model) copySelected() {
 	}
 }
 
+func (m *model) runCommandInViewport(cmd *exec.Cmd, title string) tea.Cmd {
+	m.viewingLogs = true
+	m.installLogs = fmt.Sprintf("Running: %s...\n\n", title)
+	m.viewport.SetContent(m.installLogs)
+	m.scriptOutputChan = make(chan string)
+
+	stdoutPipe, errOut := cmd.StdoutPipe()
+	stderrPipe, errErr := cmd.StderrPipe()
+	if errOut != nil || errErr != nil {
+		m.installLogs += fmt.Sprintf("Failed to establish output pipes\n")
+		m.viewport.SetContent(m.installLogs)
+		return nil
+	}
+
+	if err := cmd.Start(); err != nil {
+		m.installLogs += fmt.Sprintf("Failed to start process: %v\n", err)
+		m.viewport.SetContent(m.installLogs)
+		return nil
+	}
+
+	go func() {
+		defer close(m.scriptOutputChan)
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+
+		streamPipe := func(pipe io.ReadCloser) {
+			defer wg.Done()
+			buf := make([]byte, 1024)
+			for {
+				n, err := pipe.Read(buf)
+				if n > 0 {
+					m.scriptOutputChan <- string(buf[:n])
+				}
+				if err != nil {
+					break
+				}
+			}
+		}
+
+		go streamPipe(stdoutPipe)
+		go streamPipe(stderrPipe)
+
+		wg.Wait()
+		_ = cmd.Wait()
+	}()
+
+	return m.listenScriptOutput()
+}
+
 func (m *model) executeSelected() tea.Cmd {
 	switch m.activeTab {
 	case TabSnippets:
@@ -223,14 +275,7 @@ func (m *model) executeSelected() tea.Cmd {
 		}
 		selected := m.snippetsData[m.selectedIdx]
 		c := exec.Command("bash", "-c", selected.Code)
-		c.Stdout = os.Stdout
-		c.Stderr = os.Stderr
-		c.Stdin = os.Stdin
-		return tea.ExecProcess(c, func(err error) tea.Msg {
-			fmt.Println("\nPress Enter to return to reshell...")
-			fmt.Scanln()
-			return nil
-		})
+		return m.runCommandInViewport(c, "Snippet '"+selected.Name+"'")
 
 	case TabScripts:
 		if len(m.scriptsData) == 0 {
@@ -238,14 +283,7 @@ func (m *model) executeSelected() tea.Cmd {
 		}
 		selected := m.scriptsData[m.selectedIdx]
 		c := exec.Command("bash", selected.Path)
-		c.Stdout = os.Stdout
-		c.Stderr = os.Stderr
-		c.Stdin = os.Stdin
-		return tea.ExecProcess(c, func(err error) tea.Msg {
-			fmt.Println("\nPress Enter to return to reshell...")
-			fmt.Scanln()
-			return nil
-		})
+		return m.runCommandInViewport(c, "Script '"+selected.Name+"'")
 
 	case TabWorkflows:
 		if len(m.workflowsData) == 0 {
@@ -563,14 +601,7 @@ func (m *model) executeSearchResult() tea.Cmd {
 	case "Script":
 		scriptObj := m.scriptsData[selected.OriginalIdx]
 		c := exec.Command("bash", scriptObj.Path)
-		c.Stdout = os.Stdout
-		c.Stderr = os.Stderr
-		c.Stdin = os.Stdin
-		return tea.ExecProcess(c, func(err error) tea.Msg {
-			fmt.Println("\nPress Enter to return to reshell...")
-			fmt.Scanln()
-			return nil
-		})
+		return m.runCommandInViewport(c, "Script '"+scriptObj.Name+"'")
 
 	case "Workflow":
 		wfObj := m.workflowsData[selected.OriginalIdx]

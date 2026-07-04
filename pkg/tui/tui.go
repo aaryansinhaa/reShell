@@ -105,11 +105,12 @@ type model struct {
 	wfStepsStatus   []workflows.StepStatus
 
 	// Package Installer Sudo Authentication State
-	sudoPassword   string
-	pkgInstallChan chan string
-	installLogs    string
-	viewingLogs    bool
-	viewport       viewport.Model
+	sudoPassword     string
+	pkgInstallChan   chan string
+	scriptOutputChan chan string
+	installLogs      string
+	viewingLogs      bool
+	viewport         viewport.Model
 
 	// Marketplace installer state
 	marketplaceURL string
@@ -237,6 +238,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.runningWorkflow = nil
 		m.wfStepChan = nil
 		m.showStatus("Workflow execution sequence completed.", 3*time.Second)
+
+	case scriptOutputMsg:
+		m.installLogs += msg.text
+		m.viewport.SetContent(m.installLogs)
+		m.viewport.GotoBottom()
+		cmds = append(cmds, m.listenScriptOutput())
+
+	case scriptFinishedMsg:
+		m.scriptOutputChan = nil
+		m.showStatus("Script execution finished.", 3*time.Second)
 
 	case packageInstallOutputMsg:
 		m.installLogs += msg.text
@@ -619,6 +630,22 @@ func (m model) applySettings() tea.Cmd {
 		c := exec.Command("reshell", "apply")
 		err := c.Run()
 		return applyFinishedMsg{err: err}
+	}
+}
+
+type scriptOutputMsg struct {
+	text string
+}
+
+type scriptFinishedMsg struct{}
+
+func (m *model) listenScriptOutput() tea.Cmd {
+	return func() tea.Msg {
+		text, ok := <-m.scriptOutputChan
+		if !ok {
+			return scriptFinishedMsg{}
+		}
+		return scriptOutputMsg{text: text}
 	}
 }
 
