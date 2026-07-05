@@ -28,7 +28,7 @@ To install a complete developer environment:
 reshell install github.com/aaryansinhaa/reshell-java
 ```
 
-Under the hood, this command:
+reshell automatically:
 1. Clones the remote repository and parses the `reshell.toml` manifest.
 2. Merges development configurations:
    * **Aliases**: Binds shortcuts like `jrun` (`java -jar`).
@@ -77,12 +77,11 @@ graph TD
 ## Features
 
 - **CLI Dashboard**: Terminal user interface for managing configurations.
-- **Setup Wizard**: Detects installed text editors (Neovim, VS Code, Nano, etc.) to set editor preferences automatically.
 - **Syntax Highlighting**: Real-time rendering for scripts, custom functions, and TOML templates.
 - **Workspace Workflows**: Non-blocking, multi-step command and browser automation routines.
 - **Cross-Platform Package Manager**: Asynchronously installs and uninstalls host packages on Linux, macOS, and Windows with secure sudo password piping.
 - **Shell Compiler**: Generates optimized setup scripts and automatically registers startup hooks in `.bashrc`, `.zshrc`, or `config.fish`.
-- **Portable Configurations**: Import or export configuration directories as a single TOML manifest. Configuration merges use a **Last-Write-Wins** policy, where matching incoming elements overwrite existing local settings.
+- **Portable Configurations**: Import or export configuration directories as a single TOML manifest. Note that the configuration merge overwrites the existing settings, but you can revert those using the version control available inside reshell.
 - **Workspace Version Control**: Automatically tracks configuration files and custom scripts in a local Git repository, with TUI controls to view history and revert changes.
 
 ---
