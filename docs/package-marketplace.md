@@ -8,6 +8,10 @@ This section details how to manage system package dependencies and share configu
 
 The package installer automates host package installation across environments. Define the required packages in `config.toml`:
 
+<p align="center">
+  <img src="../assets/reshell_packages.jpg" alt="ReShell Package Management" width="650">
+</p>
+
 ```toml
 packages = [
     "git",

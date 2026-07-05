@@ -8,6 +8,10 @@ This section covers custom shell functions, script parsing, and workflow automat
 
 Shell functions allow conditional logic and parameter handling inside shell profiles. They are stored as separate shell scripts under `~/.config/reshell/functions/`.
 
+<p align="center">
+  <img src="../assets/reshell_functions.jpg" alt="ReShell Custom Functions" width="650">
+</p>
+
 ### Syntax Validation
 
 To prevent syntax errors from breaking your shell startup profile, reshell runs a dry-run check before saving functions:
@@ -24,6 +28,10 @@ Press `e` in the dashboard to open the selected function in your system `$EDITOR
 
 For longer tasks, store executable scripts under categorized folders in `~/.config/reshell/scripts/<category>/`.
 
+<p align="center">
+  <img src="../assets/reshell_scripts.jpg" alt="ReShell Script Library" width="650">
+</p>
+
 ### Parameter Detection
 
 reshell parses script files to dynamically identify required parameters:
@@ -37,6 +45,10 @@ Executing a script in the dashboard prompts you with input fields for each detec
 ## Workflows
 
 Workflows are automated step sequences defined in `~/.config/reshell/workflows.toml`.
+
+<p align="center">
+  <img src="../assets/reshell_workflows.jpg" alt="ReShell Workflows Automation" width="650">
+</p>
 
 ### Asynchronous Execution
 - Steps execute sequentially in the directory configured in the `dir` property.

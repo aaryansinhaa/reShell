@@ -8,6 +8,10 @@ This section explains how to manage script snippets and shell command mappings.
 
 Snippets are reusable code blocks or templates stored in `~/.config/reshell/snippets.toml`.
 
+<p align="center">
+  <img src="../assets/reshell_snippets.jpg" alt="ReShell Snippets Management" width="650">
+</p>
+
 ### Adding Snippets
 
 Create a snippet using the command-line interface:
@@ -43,6 +47,10 @@ code = "mkdir -p \"$1\""
 ## Aliases
 
 Aliases map command shortcuts to longer terminal commands. They are stored in `~/.config/reshell/aliases.toml`.
+
+<p align="center">
+  <img src="../assets/reshell_aliases.jpg" alt="ReShell Aliases Management" width="650">
+</p>
 
 ### Conflict Verification
 

@@ -131,6 +131,10 @@ reshell
 
 reshell supports isolated workspaces through **Profiles**. Each profile maintains its own custom aliases, snippets, custom function scripts, scripts library, environment variables, workflows, and package lists.
 
+<p align="center">
+  <img src="../assets/reshell_profiles.jpg" alt="ReShell Profile Management" width="650">
+</p>
+
 ### Managing Profiles in TUI
 
 Navigate to the **Profiles** tab in the TUI dashboard:

@@ -6,6 +6,10 @@ Welcome to the reshell documentation. reshell is a portable configuration and co
 
 reshell centralizes your shell configurations, including environment variables, command aliases, script snippets, custom shell functions, system packages, and git profiles into a single, version-controlled configuration directory.
 
+<p align="center">
+  <img src="assets/reshell_demo.jpg" alt="ReShell TUI Dashboard" width="700">
+</p>
+
 ---
 
 ## Document Sections
