@@ -214,6 +214,6 @@ func GetTruncatedCodeBlock(code, lexer string, maxLines int) string {
 
 	truncatedLines := lines[:maxLines]
 	joined := strings.Join(truncatedLines, "\n")
-	notice := "\n" + TextMuted.Render(fmt.Sprintf("... (truncated, %d lines remaining. Press Enter to edit/copy)", totalLines-maxLines))
+	notice := "\n" + TextMuted.Render(fmt.Sprintf("... (truncated, %d lines remaining. Press Enter to copy)", totalLines-maxLines))
 	return joined + notice
 }

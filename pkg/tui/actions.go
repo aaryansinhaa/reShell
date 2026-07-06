@@ -106,20 +106,8 @@ func (m *model) editSelected() tea.Cmd {
 			return nil
 		}
 		selected := m.snippetsData[m.selectedIdx]
-		tempFile := filepath.Join(os.TempDir(), fmt.Sprintf("reshell-snippet-%s.txt", selected.Name))
-		_ = os.WriteFile(tempFile, []byte(selected.Code), 0644)
-
-		editor := m.getPreferredEditor()
-		c := exec.Command(editor, tempFile)
-		return tea.ExecProcess(c, func(err error) tea.Msg {
-			if err == nil {
-				if updatedCodeBytes, errRead := os.ReadFile(tempFile); errRead == nil {
-					_ = snippets.AddOrUpdate(selected.Name, string(updatedCodeBytes), selected.Description, selected.Tags, selected.Language, selected.Shell, selected.Favorite)
-				}
-				os.Remove(tempFile)
-			}
-			return editorFinishedMsg{err: err}
-		})
+		m.initFormForEditSnippet(selected)
+		return nil
 
 	case TabFunctions:
 		if len(m.functionsData) == 0 {
@@ -269,14 +257,6 @@ func (m *model) runCommandInViewport(cmd *exec.Cmd, title string) tea.Cmd {
 
 func (m *model) executeSelected() tea.Cmd {
 	switch m.activeTab {
-	case TabSnippets:
-		if len(m.snippetsData) == 0 {
-			return nil
-		}
-		selected := m.snippetsData[m.selectedIdx]
-		c := exec.Command("bash", "-c", selected.Code)
-		return m.runCommandInViewport(c, "Snippet '"+selected.Name+"'")
-
 	case TabScripts:
 		if len(m.scriptsData) == 0 {
 			return nil
@@ -623,6 +603,36 @@ func (m *model) executeSearchResult() tea.Cmd {
 	}
 
 	return nil
+}
+
+func (m *model) editSnippetCode() tea.Cmd {
+	if len(m.snippetsData) == 0 {
+		return nil
+	}
+	selected := m.snippetsData[m.selectedIdx]
+	tempFile := filepath.Join(os.TempDir(), fmt.Sprintf("reshell-snippet-%s.txt", selected.Name))
+	_ = os.WriteFile(tempFile, []byte(selected.Code), 0644)
+
+	editor := m.getPreferredEditor()
+	c := exec.Command(editor, tempFile)
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		if err == nil {
+			if updatedCodeBytes, errRead := os.ReadFile(tempFile); errRead == nil {
+				_ = snippets.AddOrUpdate(selected.Name, string(updatedCodeBytes), selected.Description, selected.Tags, selected.Language, selected.Favorite)
+			}
+			os.Remove(tempFile)
+		}
+		return editorFinishedMsg{err: err}
+	})
+}
+
+func (m *model) toggleSnippetFavorite() {
+	if len(m.snippetsData) == 0 {
+		return
+	}
+	selected := m.snippetsData[m.selectedIdx]
+	_ = snippets.ToggleFavorite(selected.Name)
+	m.loadData()
 }
 
 func truncateString(s string, maxLen int) string {

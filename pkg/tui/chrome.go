@@ -76,7 +76,7 @@ func (c ChromeComponent) HelpView(m model) string {
 	case TabSearch:
 		keys = append(keys, "Type: Filter results", "Up/Down: Nav matches", "Enter: Exec/Copy/Toggle", "Esc: Clear")
 	case TabSnippets:
-		keys = append(keys, "n: Add snippet", "e: Edit snippet", "d: Delete snippet", "c: Copy snippet", "x: Run snippet")
+		keys = append(keys, "n: Add snippet", "e: Edit details", "E: Edit code", "d: Delete snippet", "c: Copy snippet", "f: Favorite snippet")
 	case TabAliases:
 		keys = append(keys, "n: Add alias", "e: Edit alias", "d: Delete alias", "Space: Toggle enable/disable")
 	case TabFunctions:

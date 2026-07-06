@@ -159,7 +159,7 @@ All configurations are stored in your home directory under `~/.config/reshell/`:
 ├── active_profile.txt  # Stores the currently active profile name
 ├── config.toml         # User info, preferred editor, packages, marketplace lists
 ├── aliases.toml        # Active command aliases
-├── snippets.toml       # Script snippets & version history
+├── snippets.toml       # User snippets
 ├── env.toml            # Environment variables
 ├── workflows.toml      # Workflow definitions
 ├── functions/          # Raw custom function scripts (.sh, .fish)

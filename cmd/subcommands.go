@@ -82,6 +82,8 @@ func init() {
 	// --- snippet subcommands ---
 	snippetCmd := &cobra.Command{Use: "snippet", Short: "Manage code snippets"}
 
+	var snippetTags string
+	var snippetLang string
 	snippetAddCmd := &cobra.Command{
 		Use:   "add <name> <code> [description]",
 		Short: "Add or update a snippet",
@@ -93,9 +95,30 @@ func init() {
 			if len(args) > 2 {
 				desc = args[2]
 			}
-			return snippets.AddOrUpdate(name, code, desc, []string{}, "bash", "all", false)
+			lang := "bash"
+			if snippetLang != "" {
+				l := strings.TrimSpace(strings.ToLower(snippetLang))
+				if !snippets.IsValidLanguage(l) {
+					fmt.Printf("Warning: Language '%s' is not recognized. Defaulting to 'bash'.\n", l)
+				} else {
+					lang = l
+				}
+			}
+			var tags []string
+			if snippetTags != "" {
+				parts := strings.Split(snippetTags, ",")
+				for _, p := range parts {
+					p = strings.TrimSpace(p)
+					if p != "" {
+						tags = append(tags, p)
+					}
+				}
+			}
+			return snippets.AddOrUpdate(name, code, desc, tags, lang, false)
 		},
 	}
+	snippetAddCmd.Flags().StringVarP(&snippetTags, "tags", "t", "", "Comma-separated tags for the snippet")
+	snippetAddCmd.Flags().StringVarP(&snippetLang, "lang", "l", "", "Language/highlighter syntax for the snippet (default: bash)")
 
 	snippetListCmd := &cobra.Command{
 		Use:   "list",
@@ -766,7 +789,6 @@ func init() {
 						Code:        parsed.Code,
 						Description: parsed.Description,
 						Tags:        parsed.Tags,
-						Shell:       "all",
 						Favorite:    false,
 					})
 					existingSnippets[parsed.Name] = config.Snippet{Name: parsed.Name, Code: parsed.Code}
@@ -791,7 +813,6 @@ func init() {
 								Code:        parsed.Code,
 								Description: parsed.Description,
 								Tags:        parsed.Tags,
-								Shell:       "all",
 								Favorite:    false,
 							})
 							importedSnippetsCount++

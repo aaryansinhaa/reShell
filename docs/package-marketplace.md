@@ -94,7 +94,6 @@ code = "mvn clean install -DskipTests"
 description = "Maven build without running tests"
 tags = ["maven", "java", "build"]
 language = "bash"
-shell = "all"
 
 [config]
 packages = ["openjdk-17-jdk", "maven", "gradle"]

@@ -17,29 +17,21 @@ Snippets are reusable code blocks or templates stored in `~/.config/reshell/snip
 Create a snippet using the command-line interface:
 
 ```bash
-reshell snippet add <name> <code> [description]
+reshell snippet add <name> <code> [description] [--tags <tags>] [--lang <language>]
 ```
+
+Options:
+- `-t, --tags`: Comma-separated tags (e.g. `--tags "docker,infra"`).
+- `-l, --lang`: Programming/scripting language (lexer syntax) of the snippet (e.g. `--lang "python"`). Defaults to `bash`. If an unrecognized language is entered, a warning is printed and it falls back to `bash`.
 
 Alternatively, open the dashboard (`reshell`), navigate to the **Snippets** tab, and press `n` to open the creation form.
 
-### Revision History
-
-When you update an existing snippet's code, reshell preserves the previous version. The historical script body is timestamped and stored in the `history` array inside `snippets.toml`:
-
-```toml
-[[snippets]]
-name = "mkcd"
-code = "mkdir -p \"$1\" && cd \"$1\""
-description = "Make and change directory"
-
-[[snippets.history]]
-timestamp = "2026-06-28 17:00:00"
-code = "mkdir -p \"$1\""
-```
-
 ### Dashboard Actions
-- **Editing (`e`)**: Opens the selected snippet code in a temporary `.txt` file using your preferred text editor (defined by `$EDITOR` or `config.toml`). Snippets are written as plain `.txt` files to prevent text editors from incorrectly forcing shell-script formatting and syntax highlighting on snippets written in other languages (such as C++ or Python).
-- **Copying (`c`)**: Copies the highlighted snippet code directly to the host system clipboard.
+
+- **Editing Details (`e`)**: Opens a TUI input form to edit snippet metadata (Name, Description, Tags, and Language). If you change the Name, the snippet will be renamed.
+- **Editing Code (`E`)**: Opens the selected snippet code block in a temporary `.txt` file using your preferred terminal text editor (defined by `$EDITOR` or `config.toml`). Snippets are written as plain `.txt` files to prevent text editors from forcing incorrect formatting on multi-language snippets.
+- **Copying (`c` or `Enter`)**: Copies the highlighted snippet code directly to the host system clipboard.
+- **Favorite (`f`)**: Toggles the favorite status of the highlighted snippet. Favorite snippets are highlighted with a star (`★`) symbol in the sidebar.
 
 ---
 

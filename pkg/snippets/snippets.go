@@ -6,35 +6,31 @@ import (
 	"os"
 	"reshell/pkg/config"
 	"strings"
-	"time"
 
+	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/atotto/clipboard"
 )
 
-// AddOrUpdate creates a snippet or adds a history record if modified.
-func AddOrUpdate(name, code, desc string, tags []string, lang, shell string, favorite bool) error {
+// IsValidLanguage checks if a language lexer is registered in Chroma.
+func IsValidLanguage(lang string) bool {
+	return lexers.Get(lang) != nil
+}
+
+// AddOrUpdate creates or updates a snippet.
+func AddOrUpdate(name, code, desc string, tags []string, lang string, favorite bool) error {
 	cfg, err := config.LoadSnippets()
 	if err != nil {
 		return err
 	}
 
-	now := time.Now().Format("2006-01-02 15:04:05")
 	found := false
 
 	for i, snip := range cfg.Snippets {
 		if snip.Name == name {
-			// If code is changed, update history
-			if snip.Code != code {
-				cfg.Snippets[i].History = append(snip.History, config.SnippetHistory{
-					Timestamp: now,
-					Code:      snip.Code,
-				})
-			}
 			cfg.Snippets[i].Code = code
 			cfg.Snippets[i].Description = desc
 			cfg.Snippets[i].Tags = tags
 			cfg.Snippets[i].Language = lang
-			cfg.Snippets[i].Shell = shell
 			cfg.Snippets[i].Favorite = favorite
 			found = true
 			break
@@ -48,9 +44,7 @@ func AddOrUpdate(name, code, desc string, tags []string, lang, shell string, fav
 			Description: desc,
 			Tags:        tags,
 			Language:    lang,
-			Shell:       shell,
 			Favorite:    favorite,
-			History:     []config.SnippetHistory{},
 		})
 	}
 

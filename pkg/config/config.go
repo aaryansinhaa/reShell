@@ -31,22 +31,14 @@ type AliasConfig struct {
 	Aliases []Alias `toml:"aliases"`
 }
 
-// SnippetHistory tracks edits made to snippets.
-type SnippetHistory struct {
-	Timestamp string `toml:"timestamp"`
-	Code      string `toml:"code"`
-}
-
 // Snippet represents a code snippet.
 type Snippet struct {
-	Name        string           `toml:"name"`
-	Code        string           `toml:"code"`
-	Description string           `toml:"description"`
-	Tags        []string         `toml:"tags"`
-	Language    string           `toml:"language"`
-	Shell       string           `toml:"shell"`
-	Favorite    bool             `toml:"favorite"`
-	History     []SnippetHistory `toml:"history"`
+	Name        string   `toml:"name"`
+	Code        string   `toml:"code"`
+	Description string   `toml:"description"`
+	Tags        []string `toml:"tags"`
+	Language    string   `toml:"language"`
+	Favorite    bool     `toml:"favorite"`
 }
 
 type SnippetConfig struct {

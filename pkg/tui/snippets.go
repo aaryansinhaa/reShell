@@ -60,11 +60,10 @@ func (s SnippetsComponent) View(m model) string {
 			tagsStr = strings.Join(selected.Tags, ", ")
 		}
 
-		preview := fmt.Sprintf("%s\n%s\n\nLanguage: %s\nShell: %s\nTags: %s\n\nCode:\n%s",
+		preview := fmt.Sprintf("%s\n%s\n\nLanguage: %s\nTags: %s\n\nCode:\n%s",
 			TitleStyle.Render("Snippet: "+selected.Name),
 			TextMuted.Render(selected.Description),
 			selected.Language,
-			selected.Shell,
 			tagsStr,
 			GetTruncatedCodeBlock(selected.Code, selected.Language, 10),
 		)

@@ -85,8 +85,10 @@ func (s SearchComponent) View(m model) string {
 
 		selected := m.searchResults[m.selectedIdx]
 		actionHint := "Press [Enter] to execute / copy / toggle"
-		if selected.Type == "Function" || selected.Type == "Snippet" {
-			actionHint = "Press [Enter] to edit / copy"
+		if selected.Type == "Function" {
+			actionHint = "Press [Enter] to edit"
+		} else if selected.Type == "Snippet" {
+			actionHint = "Press [Enter] to copy"
 		}
 
 		lexer := "bash"

@@ -85,7 +85,7 @@ func MergeManifest(manifest *MarketplaceManifest, tempDir string) error {
 
 	// 5. Merge snippets
 	for _, snip := range manifest.Snippets {
-		if err := snippets.AddOrUpdate(snip.Name, snip.Code, snip.Description, snip.Tags, snip.Language, snip.Shell, snip.Favorite); err != nil {
+		if err := snippets.AddOrUpdate(snip.Name, snip.Code, snip.Description, snip.Tags, snip.Language, snip.Favorite); err != nil {
 			return fmt.Errorf("failed to merge snippet '%s': %w", snip.Name, err)
 		}
 	}

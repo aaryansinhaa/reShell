@@ -30,7 +30,7 @@ func (m *model) initForm() {
 	case TabSnippets:
 		m.formType = "snippet"
 		m.formTitle = "Create New Code Snippet"
-		m.formInputs = make([]textinput.Model, 3)
+		m.formInputs = make([]textinput.Model, 5)
 		m.formInputs[0] = textinput.New()
 		m.formInputs[0].Placeholder = "Snippet Name"
 		m.formInputs[0].Focus()
@@ -38,6 +38,10 @@ func (m *model) initForm() {
 		m.formInputs[1].Placeholder = "Code Block Content"
 		m.formInputs[2] = textinput.New()
 		m.formInputs[2].Placeholder = "Description"
+		m.formInputs[3] = textinput.New()
+		m.formInputs[3].Placeholder = "Tags (comma-separated, e.g. docker, clean)"
+		m.formInputs[4] = textinput.New()
+		m.formInputs[4].Placeholder = "Language (e.g. bash, go, python; default: bash)"
 
 	case TabAliases:
 		m.formType = "alias"
@@ -244,6 +248,32 @@ func (m *model) initFormForEditEnv(selected config.EnvVar) {
 	m.formInputs[2].SetValue(selected.Description)
 }
 
+func (m *model) initFormForEditSnippet(selected config.Snippet) {
+	m.inputMode = true
+	m.inputFocus = 0
+	m.formType = "edit_snippet"
+	m.oldSnippetName = selected.Name
+	m.formTitle = fmt.Sprintf("Edit Snippet: %s", selected.Name)
+
+	m.formInputs = make([]textinput.Model, 4)
+	m.formInputs[0] = textinput.New()
+	m.formInputs[0].Placeholder = "Snippet Name"
+	m.formInputs[0].SetValue(selected.Name)
+	m.formInputs[0].Focus()
+
+	m.formInputs[1] = textinput.New()
+	m.formInputs[1].Placeholder = "Description"
+	m.formInputs[1].SetValue(selected.Description)
+
+	m.formInputs[2] = textinput.New()
+	m.formInputs[2].Placeholder = "Tags (comma-separated)"
+	m.formInputs[2].SetValue(strings.Join(selected.Tags, ", "))
+
+	m.formInputs[3] = textinput.New()
+	m.formInputs[3].Placeholder = "Language"
+	m.formInputs[3].SetValue(selected.Language)
+}
+
 func (m *model) handleFormKey(msg tea.KeyMsg) tea.Cmd {
 	switch msg.String() {
 	case "esc":
@@ -309,8 +339,26 @@ func (m *model) submitForm() tea.Cmd {
 		name := m.formInputs[0].Value()
 		code := m.formInputs[1].Value()
 		desc := m.formInputs[2].Value()
+		tagsStr := m.formInputs[3].Value()
+		lang := strings.TrimSpace(strings.ToLower(m.formInputs[4].Value()))
+		if lang == "" {
+			lang = "bash"
+		} else if !snippets.IsValidLanguage(lang) {
+			m.showStatus(fmt.Sprintf("Language '%s' is not recognized. Defaulting to 'bash'.", lang), 4*time.Second)
+			lang = "bash"
+		}
+		var tags []string
+		if tagsStr != "" {
+			parts := strings.Split(tagsStr, ",")
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				if p != "" {
+					tags = append(tags, p)
+				}
+			}
+		}
 		if name != "" && code != "" {
-			_ = snippets.AddOrUpdate(name, code, desc, []string{}, "bash", "all", false)
+			_ = snippets.AddOrUpdate(name, code, desc, tags, lang, false)
 		}
 	case "alias":
 		name := m.formInputs[0].Value()
@@ -457,6 +505,44 @@ fi`,
 				_ = env.Remove(m.oldEnvName)
 			}
 			_ = env.AddOrUpdate(name, val, desc, true)
+		}
+	case "edit_snippet":
+		name := m.formInputs[0].Value()
+		desc := m.formInputs[1].Value()
+		tagsStr := m.formInputs[2].Value()
+		lang := strings.TrimSpace(strings.ToLower(m.formInputs[3].Value()))
+		if lang == "" {
+			lang = "bash"
+		} else if !snippets.IsValidLanguage(lang) {
+			m.showStatus(fmt.Sprintf("Language '%s' is not recognized. Defaulting to 'bash'.", lang), 4*time.Second)
+			lang = "bash"
+		}
+		var tags []string
+		if tagsStr != "" {
+			parts := strings.Split(tagsStr, ",")
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				if p != "" {
+					tags = append(tags, p)
+				}
+			}
+		}
+
+		if name != "" {
+			var code string
+			var favorite bool
+			for _, snip := range m.snippetsData {
+				if snip.Name == m.oldSnippetName {
+					code = snip.Code
+					favorite = snip.Favorite
+					break
+				}
+			}
+
+			if m.oldSnippetName != "" && name != m.oldSnippetName {
+				_ = snippets.Remove(m.oldSnippetName)
+			}
+			_ = snippets.AddOrUpdate(name, code, desc, tags, lang, favorite)
 		}
 	case "sudo":
 		m.sudoPassword = m.formInputs[0].Value()

@@ -26,7 +26,7 @@ func TestAddRemoveSnippet(t *testing.T) {
 	setupTestHome(t)
 
 	// Add new snippet
-	err := AddOrUpdate("test-snip", "echo 'hello'", "A test snippet", []string{"test", "hello"}, "bash", "all", false)
+	err := AddOrUpdate("test-snip", "echo 'hello'", "A test snippet", []string{"test", "hello"}, "bash", false)
 	if err != nil {
 		t.Fatalf("AddOrUpdate failed: %v", err)
 	}
@@ -69,8 +69,8 @@ func TestAddRemoveSnippet(t *testing.T) {
 func TestSnippetSearch(t *testing.T) {
 	setupTestHome(t)
 
-	_ = AddOrUpdate("golang-run", "go run .", "Run go program", []string{"go", "run"}, "go", "all", false)
-	_ = AddOrUpdate("docker-build", "docker build -t test .", "Build container", []string{"docker", "build"}, "bash", "all", false)
+	_ = AddOrUpdate("golang-run", "go run .", "Run go program", []string{"go", "run"}, "go", false)
+	_ = AddOrUpdate("docker-build", "docker build -t test .", "Build container", []string{"docker", "build"}, "bash", false)
 
 	tests := []struct {
 		query string
@@ -94,5 +94,47 @@ func TestSnippetSearch(t *testing.T) {
 				t.Errorf("Search(%q) returned %d items, expected %d", tt.query, len(res), tt.count)
 			}
 		})
+	}
+}
+
+func TestEditSnippetFields(t *testing.T) {
+	setupTestHome(t)
+
+	// Add initial snippet
+	err := AddOrUpdate("test-edit", "echo 'orig'", "Orig desc", []string{"orig"}, "bash", false)
+	if err != nil {
+		t.Fatalf("AddOrUpdate failed: %v", err)
+	}
+
+	// Update the snippet fields (preserve code & favorite)
+	err = AddOrUpdate("test-edit", "echo 'orig'", "New desc", []string{"new", "edit"}, "python", true)
+	if err != nil {
+		t.Fatalf("AddOrUpdate update failed: %v", err)
+	}
+
+	// Verify update
+	results, err := Search("test-edit")
+	if err != nil {
+		t.Fatalf("Search failed: %v", err)
+	}
+	if len(results) != 1 {
+		t.Fatalf("expected 1 snippet, got %d", len(results))
+	}
+
+	snip := results[0]
+	if snip.Code != "echo 'orig'" {
+		t.Errorf("expected code to be preserved, got %s", snip.Code)
+	}
+	if snip.Description != "New desc" {
+		t.Errorf("expected description to be updated, got %s", snip.Description)
+	}
+	if len(snip.Tags) != 2 || snip.Tags[0] != "new" || snip.Tags[1] != "edit" {
+		t.Errorf("expected tags to be updated, got %v", snip.Tags)
+	}
+	if snip.Language != "python" {
+		t.Errorf("expected language to be updated, got %s", snip.Language)
+	}
+	if !snip.Favorite {
+		t.Errorf("expected favorite to be preserved as true")
 	}
 }

@@ -98,9 +98,10 @@ type model struct {
 
 	// Interactive Input Forms
 	inputMode  bool
-	formType   string // "snippet", "alias", "function", "script", "workflow", "env", "sudo", "marketplace"
-	oldEnvName string
-	formTitle  string
+	formType       string // "snippet", "alias", "function", "script", "workflow", "env", "sudo", "marketplace"
+	oldEnvName     string
+	oldSnippetName string
+	formTitle      string
 	formInputs []textinput.Model
 	inputFocus int
 
@@ -446,6 +447,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, cmd
 			}
 
+		case "E":
+			if m.activeTab == TabSnippets {
+				cmd := m.editSnippetCode()
+				if cmd != nil {
+					return m, cmd
+				}
+			}
+
 		case "d":
 			m.deleteSelected()
 
@@ -479,6 +488,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.toggleAlias()
 			} else if m.activeTab == TabEnv {
 				m.toggleEnv()
+			}
+
+		case "f":
+			if m.activeTab == TabSnippets {
+				m.toggleSnippetFavorite()
 			}
 
 		case "i":
@@ -576,6 +590,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.showStatus(fmt.Sprintf("Switched active profile to '%s'!", selected), 3*time.Second)
 					return m, m.applySettings()
 				}
+			} else if m.activeTab == TabSnippets {
+				m.copySelected()
 			}
 		}
 	}
