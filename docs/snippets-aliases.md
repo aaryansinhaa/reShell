@@ -40,7 +40,6 @@ code = "mkdir -p \"$1\""
 ### Dashboard Actions
 - **Editing (`e`)**: Opens the selected snippet code in a temporary `.txt` file using your preferred text editor (defined by `$EDITOR` or `config.toml`). Snippets are written as plain `.txt` files to prevent text editors from incorrectly forcing shell-script formatting and syntax highlighting on snippets written in other languages (such as C++ or Python).
 - **Copying (`c`)**: Copies the highlighted snippet code directly to the host system clipboard.
-- **Executing (`x`)**: Runs the snippet code in an isolated subshell process, printing stdout/stderr before returning to the dashboard.
 
 ---
 

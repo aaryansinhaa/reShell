@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Formatting issues in the `docs/` files ([#7](https://github.com/aaryansinhaa/reshell/issues/7))
 - Preview window formatting issues ([9696b83](https://github.com/aaryansinhaa/reshell/commit/9696b83))
 - Formatting issue for larger snippets and improved conflict checking ([980c0a7](https://github.com/aaryansinhaa/reshell/commit/980c0a7))
 - CI fixes: disable setup-go cache to prevent extraction failure ([798a89e](https://github.com/aaryansinhaa/reshell/commit/798a89e)), remove Python dependency caching to fix setup-python error ([715bfd6](https://github.com/aaryansinhaa/reshell/commit/715bfd6))

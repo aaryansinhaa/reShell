@@ -35,6 +35,7 @@ Initialize the global configuration, install the binary, inject startup hooks, a
 ```
 
 The `setup` command:
+
 1. Copy-installs the `reshell` executable into your local user path (`~/.local/bin/`), registers path variables, and injects shell hook integrations.
 2. Prompts you for a target profile name (defaults to `default`). If the profile does not exist, it will be created.
 3. Auto-discovers and imports configurations:
@@ -54,6 +55,7 @@ reshell apply
 ```
 
 This generates shell-specific script outputs and registers startup hooks:
+
 - **Zsh**: Adds integration blocks to `~/.zshrc` and compiles imports to `~/.config/reshell/shell/reshell.sh`.
 - **Bash**: Adds integration blocks to `~/.bashrc` and compiles imports to `~/.config/reshell/shell/reshell.sh`.
 - **Fish**: Adds integration blocks to `~/.config/fish/config.fish` and compiles imports to `~/.config/reshell/shell/reshell.fish`.
@@ -84,7 +86,8 @@ To prevent configuration drift, you can export and import your workspace configu
 
 ### Conflict Resolution (Last-Write-Wins Policy)
 
-reshell uses a **Last-Write-Wins (LWW)** conflict resolution policy when merging configurations:
+reshell uses a **Last-Write-Wins** conflict resolution policy when merging configurations:
+
 - **Manifest Imports (`reshell import`)**: Overwrites the existing local configurations with the contents of the imported TOML manifest file.
 - **Marketplace Packs (`reshell install`)**: Fetches the configuration pack manifest, presents a summary breakdown of all environment variables, aliases, snippets, custom functions, and library scripts to be installed, warns about running third-party scripts, and prompts for confirmation before merging. Merges are performed item-by-item. If an imported alias, environment variable, or snippet matches an existing local key, the imported value overwrites the local one.
 - **Git Version Control**: Since reshell automatically commits all changes under `~/.config/reshell/`, you can inspect diffs and resolve conflicts or revert undesired overwrites using standard Git command-line tools.
@@ -145,6 +148,7 @@ reshell supports isolated workspaces through **Profiles**. Each profile maintain
 ### Managing Profiles in TUI
 
 Navigate to the **Profiles** tab in the TUI dashboard:
+
 - **`s` or `Enter`**: Activates the highlighted profile and automatically compiles and updates your shell hooks (`reshell apply`).
 - **`n`**: Prompts you for a name to create and switch to a new profile.
 - **`d`**: Deletes the highlighted profile (you cannot delete the active profile).
@@ -173,6 +177,7 @@ You can also control profiles directly from the command line:
 ### Isolated Version Control Histories
 
 Each configuration profile maintains its own **completely isolated Git history**:
+
 - Custom profiles store their version histories inside `~/.config/reshell/profiles/<name>/.git/`.
 - The default profile stores its history at the root of `~/.config/reshell/.git/` and automatically ignores custom profiles to prevent overlap.
 - Swapping profiles switches the TUI History panel to show commits specific to that profile only.
@@ -180,6 +185,7 @@ Each configuration profile maintains its own **completely isolated Git history**
 #### Clearing Version History
 
 If you want to discard your profile's version control history and start fresh with a clean initial snapshot:
+
 - **TUI Dashboard**: Go to the **Git** tab, toggle **History View** (using `h`), and press **`c`**.
 - **CLI Terminal**: Run the following subcommand:
   ```bash

@@ -15,6 +15,7 @@ Shell functions allow conditional logic and parameter handling inside shell prof
 ### Syntax Validation
 
 To prevent syntax errors from breaking your shell startup profile, reshell runs a dry-run check before saving functions:
+
 - Run validation from the command line: `reshell function validate <name>`.
 - In the dashboard, select a function and press `v`.
 - This runs the shell parser in syntax-only mode (`bash -n` or `fish -n` depending on the target shell) to catch unclosed brackets or quote mismatches without executing the script.
@@ -35,6 +36,7 @@ For longer tasks, store executable scripts under categorized folders in `~/.conf
 ### Parameter Detection
 
 reshell parses script files to dynamically identify required parameters:
+
 1. **Comment Annotations**: Scans for `# @param <Name>` tags in comment headers.
 2. **Positional References**: Detects occurrences of variables `$1` through `$9`.
 
