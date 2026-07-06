@@ -56,6 +56,7 @@ reshell install github.com/aaryansinhaa/reshell-java
 ```
 
 The import process:
+
 1. Clones the remote Git repository into a temporary workspace.
 2. Reads the `reshell.toml` manifest file from the repository root.
 3. Displays a verification breakdown of all packages, variables, aliases, functions, and scripts, warns about third-party imports, and requests confirmation before merging.

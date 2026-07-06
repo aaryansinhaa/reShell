@@ -111,6 +111,7 @@ Configure global binary path hooks, profile integrations, and automatically impo
 ./reshell setup [directory_path]
 ```
 The setup command:
+
 1. Installs the `reshell` executable to `~/.local/bin/` and registers startup hooks in your shell profile.
 2. Prompts you to select or create a target configuration profile (default: `default`).
 3. Auto-discovers and imports configurations:
