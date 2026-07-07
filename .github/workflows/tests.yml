@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v4 # v4.2.2
  
       - name: Set up Go
-        uses: actions/setup-go@3041de560034e262f551986c197b17f3698d274e # v5.2.0
+        uses: actions/setup-go@v5 # v5.2.0
         with:
           go-version: '1.22'
           cache: false
@@ -33,7 +33,7 @@ jobs:
         run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
  
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@b9fd77a6f35a48282173593be2a9c3117578f780 # v4.6.0
+        uses: codecov/codecov-action@v4 # v4.6.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.txt
