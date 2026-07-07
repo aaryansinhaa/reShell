@@ -67,39 +67,51 @@ func (c ChromeComponent) SidebarView(m model, h int) string {
 			tabs = append(tabs, TabInactiveStyle.Width(20).Render(" "+name))
 		}
 	}
-	return SidebarStyle.Height(h).Render(lipgloss.JoinVertical(lipgloss.Left, tabs...))
+	return SidebarStyle.Render(lipgloss.JoinVertical(lipgloss.Left, tabs...))
 }
 
 func (c ChromeComponent) HelpView(m model) string {
-	keys := []string{"Tab/S-Tab: Cycle tabs", "Ctrl+/: Finder", "Ctrl+t: Theme", "Ctrl+a: Apply", "q/Ctrl+c: Quit"}
+	globalKeys := []string{"Tab/S-Tab: Cycle tabs", "Ctrl+/: Finder", "Ctrl+t: Theme", "Ctrl+a: Apply", "q/Ctrl+c: Quit"}
+	var tabKeys []string
+
 	switch m.activeTab {
 	case TabSearch:
-		keys = append(keys, "Type: Filter results", "Up/Down: Nav matches", "Enter: Exec/Copy/Toggle", "Esc: Clear")
+		tabKeys = []string{"Type: Filter results", "Up/Down: Nav matches", "Enter: Exec/Copy/Toggle", "Esc: Clear"}
 	case TabSnippets:
-		keys = append(keys, "n: Add snippet", "e: Edit details", "E: Edit code", "d: Delete snippet", "c: Copy snippet", "f: Favorite snippet")
+		tabKeys = []string{"n: Add snippet", "e: Edit details", "E: Edit code", "d: Delete snippet", "c: Copy snippet", "f: Favorite snippet"}
 	case TabAliases:
-		keys = append(keys, "n: Add alias", "e: Edit alias", "d: Delete alias", "Space: Toggle enable/disable")
+		tabKeys = []string{"n: Add alias", "e: Edit alias", "d: Delete alias", "Space: Toggle enable/disable"}
 	case TabFunctions:
-		keys = append(keys, "n: Create function", "e: Edit body", "d: Remove", "v: Dry-run check syntax")
+		tabKeys = []string{"n: Create function", "e: Edit body", "d: Remove", "v: Dry-run check syntax"}
 	case TabScripts:
-		keys = append(keys, "n: Create script", "e: Edit body", "d: Remove", "x: Execute script")
+		tabKeys = []string{"n: Create script", "e: Edit body", "d: Remove", "x: Execute script"}
 	case TabWorkflows:
-		keys = append(keys, "n: Initialize workflow", "e: Edit workflows.toml", "x: Run workflow", "d: Delete")
+		tabKeys = []string{"n: Initialize workflow", "e: Edit workflows.toml", "x: Run workflow", "d: Delete"}
 	case TabPackages:
-		keys = append(keys, "n: Add package", "d: Delete", "i: Install packages", "u: Uninstall package")
+		tabKeys = []string{"n: Add package", "d: Delete", "i: Install packages", "u: Uninstall package"}
 	case TabMarketplace:
-		keys = append(keys, "i: Install profile package")
+		tabKeys = []string{"i: Install profile package"}
 	case TabEnv:
-		keys = append(keys, "n: Add variable", "e: Edit variable", "d: Delete", "Space: Toggle enable/disable")
+		tabKeys = []string{"n: Add variable", "e: Edit variable", "d: Delete", "Space: Toggle enable/disable"}
 	case TabGit:
 		if m.gitHistoryView {
-			keys = append(keys, "h: Config view", "Up/Down: Nav commits", "r/Enter: Revert to version", "c: Clear history")
+			tabKeys = []string{"h: Config view", "Up/Down: Nav commits", "r/Enter: Revert to version", "c: Clear history"}
 		} else {
-			keys = append(keys, "h: History view")
+			tabKeys = []string{"h: History view"}
 		}
 	case TabProfiles:
-		keys = append(keys, "s/Enter: Activate profile", "n: Create profile", "d: Delete profile")
+		tabKeys = []string{"s/Enter: Activate profile", "n: Create profile", "d: Delete profile"}
 	}
 
-	return HelpStyle.Width(m.width - 4).Render(strings.Join(keys, "  |  "))
+	row1 := strings.Join(tabKeys, "  |  ")
+	row2 := strings.Join(globalKeys, "  |  ")
+
+	var combined string
+	if row1 != "" {
+		combined = row1 + "\n" + row2
+	} else {
+		combined = row2
+	}
+
+	return HelpStyle.Width(m.width - 4).Render(combined)
 }

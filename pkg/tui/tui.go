@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -601,10 +602,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // TUI layout generation
 func (m model) View() string {
-	h := m.height - 10
+	h := m.height - 11
 	hasStatus := false
 	if time.Now().Before(m.statusMessageExpiry) {
-		h = m.height - 11
+		h = m.height - 12
 		hasStatus = true
 	}
 	m.mainHeight = h
@@ -644,15 +645,26 @@ func (m model) View() string {
 		right = m.logsView()
 	}
 
-	mainPanel := lipgloss.JoinHorizontal(lipgloss.Top, left, MainStyle.Height(h).Render(right))
+	mainPanel := lipgloss.JoinHorizontal(lipgloss.Top, left, MainStyle.Render(right))
 	help := m.chrome.HelpView(m)
+
+	var statusLine string
+	totalH := lipgloss.Height(header) + lipgloss.Height(mainPanel) + lipgloss.Height(help)
+	if hasStatus {
+		statusLine = lipgloss.NewStyle().Foreground(YellowColor).Bold(true).Padding(0, 2).Render(m.statusMessage)
+		totalH += lipgloss.Height(statusLine)
+	}
+
+	padding := ""
+	if m.height > totalH {
+		padding = strings.Repeat("\n", m.height-totalH)
+	}
 
 	var joined string
 	if hasStatus {
-		statusLine := lipgloss.NewStyle().Foreground(YellowColor).Bold(true).Padding(0, 2).Render(m.statusMessage)
-		joined = lipgloss.JoinVertical(lipgloss.Left, header, mainPanel, statusLine, help)
+		joined = lipgloss.JoinVertical(lipgloss.Left, header, mainPanel, statusLine, padding+help)
 	} else {
-		joined = lipgloss.JoinVertical(lipgloss.Left, header, mainPanel, help)
+		joined = lipgloss.JoinVertical(lipgloss.Left, header, mainPanel, padding+help)
 	}
 
 	return makeOpaque(joined, m.width, m.height, BgColor)
