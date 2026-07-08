@@ -109,6 +109,14 @@ func (m *model) editSelected() tea.Cmd {
 		m.initFormForEditSnippet(selected)
 		return nil
 
+	case TabAliases:
+		if len(m.aliasesData) == 0 {
+			return nil
+		}
+		selected := m.aliasesData[m.selectedIdx]
+		m.initFormForEditAlias(selected)
+		return nil
+
 	case TabFunctions:
 		if len(m.functionsData) == 0 {
 			return nil

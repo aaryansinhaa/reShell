@@ -274,6 +274,28 @@ func (m *model) initFormForEditSnippet(selected config.Snippet) {
 	m.formInputs[3].SetValue(selected.Language)
 }
 
+func (m *model) initFormForEditAlias(selected config.Alias) {
+	m.inputMode = true
+	m.inputFocus = 0
+	m.formType = "edit_alias"
+	m.oldEnvName = selected.Name
+	m.formTitle = fmt.Sprintf("Edit Command Alias: %s", selected.Name)
+
+	m.formInputs = make([]textinput.Model, 3)
+	m.formInputs[0] = textinput.New()
+	m.formInputs[0].Placeholder = "Alias Name"
+	m.formInputs[0].SetValue(selected.Name)
+	m.formInputs[0].Focus()
+
+	m.formInputs[1] = textinput.New()
+	m.formInputs[1].Placeholder = "Command Value"
+	m.formInputs[1].SetValue(selected.Value)
+
+	m.formInputs[2] = textinput.New()
+	m.formInputs[2].Placeholder = "Description"
+	m.formInputs[2].SetValue(selected.Description)
+}
+
 func (m *model) handleFormKey(msg tea.KeyMsg) tea.Cmd {
 	switch msg.String() {
 	case "esc":
@@ -505,6 +527,16 @@ fi`,
 				_ = env.Remove(m.oldEnvName)
 			}
 			_ = env.AddOrUpdate(name, val, desc, true)
+		}
+	case "edit_alias":
+		name := m.formInputs[0].Value()
+		val := m.formInputs[1].Value()
+		desc := m.formInputs[2].Value()
+		if name != "" && val != "" {
+			if m.oldEnvName != "" && name != m.oldEnvName {
+				_ = aliases.Remove(m.oldEnvName)
+			}
+			_ = aliases.AddOrUpdate(name, val, desc, "all", true)
 		}
 	case "edit_snippet":
 		name := m.formInputs[0].Value()
