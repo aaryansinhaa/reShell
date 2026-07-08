@@ -9,7 +9,7 @@
 reshell is a portable developer environment and command-line workspace manager. It provides a terminal dashboard to configure, track, and synchronize aliases, script snippets, shell functions, environment variables, system packages, and git configurations from a single, version-controlled configuration directory.
 
 <p align="center">
-  <img src="docs/assets/reshell_demo.jpg" alt="ReShell TUI Dashboard" width="800">
+  <img src="docs/assets/demo.gif" alt="ReShell TUI" width="800">
 </p>
 
 ---

@@ -672,13 +672,20 @@ func (m model) View() string {
 
 func (m model) getVisibleSlice(totalItems int) (int, int) {
 	maxVisible := m.mainHeight - 4
+	selectedIdx := m.selectedIdx
+
+	if m.activeTab == TabGit && m.gitHistoryView {
+		maxVisible = m.mainHeight - 9
+		selectedIdx = m.gitSelectedIdx
+	}
+
 	if maxVisible < 5 {
 		maxVisible = 5
 	}
 	if totalItems <= maxVisible {
 		return 0, totalItems
 	}
-	start := m.selectedIdx - maxVisible/2
+	start := selectedIdx - maxVisible/2
 	if start < 0 {
 		start = 0
 	}
