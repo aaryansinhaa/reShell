@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -14,8 +13,7 @@ func (w WorkflowsComponent) View(m model) string {
 	if len(m.workflowsData) == 0 {
 		descText := "Workflows execute a series of bash commands sequentially in specified directories, halting on failures.\n\nHow to write a workflow:\n1. Define them in ~/.config/reshell/workflows.toml\n2. Template Structure:"
 
-		ta := textarea.New()
-		ta.SetValue(`[[workflows]]
+		tomlExample := `[[workflows]]
 name = "deploy-web"
 description = "Build and upload frontend dist"
 
@@ -27,30 +25,15 @@ description = "Build and upload frontend dist"
   [[workflows.steps]]
   command = "scp -r ./dist user@host:/var/www"
   dir = "~/projects/frontend"
-  comment = "Transfer assets"`)
+  comment = "Transfer assets"`
 
-		taWidth := m.width - 38
-		if taWidth < 30 {
-			taWidth = 30
-		}
-		ta.SetWidth(taWidth)
-		ta.SetHeight(12)
-		ta.Blur()
-
-		// Configure translucent textarea styling
-		ta.FocusedStyle.Base = lipgloss.NewStyle().Foreground(TextBright)
-		ta.BlurredStyle.Base = lipgloss.NewStyle().Foreground(TextMutedColor)
-		ta.FocusedStyle.CursorLine = lipgloss.NewStyle()
-		ta.BlurredStyle.CursorLine = lipgloss.NewStyle()
-		ta.FocusedStyle.Text = lipgloss.NewStyle().Foreground(TextBright)
-		ta.BlurredStyle.Text = lipgloss.NewStyle().Foreground(TextMutedColor)
-
+		highlighted := HighlightCode(tomlExample, "toml")
 		borderStyle := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(GrayColor).
 			Padding(0, 1)
 
-		codeBox := borderStyle.Render(ta.View())
+		codeBox := borderStyle.Render(highlighted)
 
 		footerHelp := TextMuted.Render("Press 'n' to initialize a new workflow template and open workflows.toml in your editor.")
 
@@ -118,35 +101,13 @@ description = "Build and upload frontend dist"
 			stepsView.WriteString(fmt.Sprintf("%s%d. %s (dir: %s)\n", marker, idx+1, step.Command, step.Dir))
 		}
 
-		ta := textarea.New()
-		ta.SetValue(fmt.Sprintf("Workflow: %s\n%s\n\nSteps Sequence:\n%s",
-			selected.Name,
-			selected.Description,
+		preview := fmt.Sprintf("%s\n%s\n\nSteps Sequence:\n%s",
+			TitleStyle.Render("Workflow: "+selected.Name),
+			TextMuted.Render(selected.Description),
 			stepsView.String(),
-		))
+		)
 
-		taWidth := cardWidth - 4
-		if taWidth < 30 {
-			taWidth = 30
-		}
-		ta.SetWidth(taWidth)
-		ta.SetHeight(12)
-		ta.Blur()
-
-		// Configure translucent textarea styling
-		ta.FocusedStyle.Base = lipgloss.NewStyle().Foreground(TextBright)
-		ta.BlurredStyle.Base = lipgloss.NewStyle().Foreground(TextMutedColor)
-		ta.FocusedStyle.CursorLine = lipgloss.NewStyle()
-		ta.BlurredStyle.CursorLine = lipgloss.NewStyle()
-		ta.FocusedStyle.Text = lipgloss.NewStyle().Foreground(TextBright)
-		ta.BlurredStyle.Text = lipgloss.NewStyle().Foreground(TextMutedColor)
-
-		borderStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(GrayColor).
-			Padding(0, 1)
-
-		previewCard := borderStyle.Render(ta.View())
+		previewCard := CardStyle.Width(cardWidth).Render(preview)
 
 		return lipgloss.JoinHorizontal(lipgloss.Top, leftCol, previewCard)
 	} else {

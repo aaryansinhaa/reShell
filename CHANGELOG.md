@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a demo gif in the readme. ([#17](https://github.com/aaryansinhaa/reshell/issues/17))
 - Auto-discover and import configurations (aliases, environment variables, custom functions, snippets) from local shell profiles, ~/.config, VS Code user snippets, and Pet manager TOML configs during setup ([#1](https://github.com/aaryansinhaa/reshell/issues/1))
 - `changelog` to keep track of the changes in the project ([#2](https://github.com/aaryansinhaa/reshell/issues/2))
 - `reshell` environment manager implementation ([fb60a6e](https://github.com/aaryansinhaa/reshell/commit/fb60a6e))
