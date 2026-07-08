@@ -25,7 +25,7 @@ var tabNames = map[ActiveTab]string{
 type ChromeComponent struct{}
 
 func (c ChromeComponent) HeaderView(m model) string {
-	logo := " ⚒️  reshell "
+	logo := " \U0001F6E0\uFE0E  reshell "
 	shellName := shell.DetectShell()
 	profile, _ := shell.GetShellProfile(shellName)
 
