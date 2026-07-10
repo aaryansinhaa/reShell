@@ -109,7 +109,7 @@ func IsSecret(name, val string) bool {
 	}
 	return false
 }
-func cleanLineForBracesAndKeywords(line string, inSingleQuote, inDoubleQuote *bool) string {
+func CleanLineForBracesAndKeywords(line string, inSingleQuote, inDoubleQuote *bool) string {
 	var sb strings.Builder
 	runes := []rune(line)
 	n := len(runes)
@@ -209,7 +209,7 @@ func parseBashFile(filePath string, results *DiscoveryResults) error {
 				funcBody = []string{line}
 				inSingleQuote = false
 				inDoubleQuote = false
-				cleaned := cleanLineForBracesAndKeywords(line, &inSingleQuote, &inDoubleQuote)
+				cleaned := CleanLineForBracesAndKeywords(line, &inSingleQuote, &inDoubleQuote)
 				braceCount = strings.Count(cleaned, "{") - strings.Count(cleaned, "}")
 				if braceCount == 0 {
 					results.Functions = append(results.Functions, ParsedFunction{
@@ -226,7 +226,7 @@ func parseBashFile(filePath string, results *DiscoveryResults) error {
 			}
 		} else {
 			funcBody = append(funcBody, line)
-			cleaned := cleanLineForBracesAndKeywords(line, &inSingleQuote, &inDoubleQuote)
+			cleaned := CleanLineForBracesAndKeywords(line, &inSingleQuote, &inDoubleQuote)
 			braceCount += strings.Count(cleaned, "{") - strings.Count(cleaned, "}")
 			if braceCount <= 0 {
 				results.Functions = append(results.Functions, ParsedFunction{
@@ -316,7 +316,7 @@ func parseFishFile(filePath string, results *DiscoveryResults) error {
 			}
 		} else {
 			funcBody = append(funcBody, line)
-			cleaned := cleanLineForBracesAndKeywords(line, &inSingleQuote, &inDoubleQuote)
+			cleaned := CleanLineForBracesAndKeywords(line, &inSingleQuote, &inDoubleQuote)
 			depth = updateFishDepth(cleaned, depth)
 			if depth <= 0 {
 				results.Functions = append(results.Functions, ParsedFunction{

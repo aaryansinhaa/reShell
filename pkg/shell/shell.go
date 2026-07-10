@@ -137,7 +137,9 @@ func Apply() error {
 				codeBytes, errRead := os.ReadFile(fullPath)
 				if errRead == nil {
 					if !isValidFunctionScript(name, string(codeBytes), ext) {
-						fmt.Printf("reshell: Warning: skipping custom function '%s' because it contains executable statements outside the function block.\n", name)
+						if !config.IsTUI {
+							fmt.Fprintf(os.Stderr, "reshell: Warning: skipping custom function '%s' because it contains executable statements outside the function block.\n", name)
+						}
 						continue
 					}
 				}
@@ -320,6 +322,8 @@ func isValidFunctionScript(name, code, ext string) bool {
 	var blockStartSeen bool
 	var blockEndSeen bool
 	var depth int
+	var inSingleQuote bool
+	var inDoubleQuote bool
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -344,7 +348,10 @@ func isValidFunctionScript(name, code, ext string) bool {
 					strings.Contains(line, name+"() {") ||
 					strings.Contains(line, name+"(){") {
 					isStart = true
-					depth = strings.Count(line, "{") - strings.Count(line, "}")
+					inSingleQuote = false
+					inDoubleQuote = false
+					cleaned := config.CleanLineForBracesAndKeywords(line, &inSingleQuote, &inDoubleQuote)
+					depth = strings.Count(cleaned, "{") - strings.Count(cleaned, "}")
 				}
 			}
 
@@ -354,16 +361,20 @@ func isValidFunctionScript(name, code, ext string) bool {
 				if ext == ".fish" && depth <= 0 {
 					blockEndSeen = true
 					insideBlock = false
-				} else if ext != ".fish" && blockStartSeen && depth <= 0 && strings.Contains(line, "}") {
-					blockEndSeen = true
-					insideBlock = false
+				} else if ext != ".fish" && blockStartSeen && depth <= 0 {
+					cleaned := config.CleanLineForBracesAndKeywords(line, &inSingleQuote, &inDoubleQuote)
+					if strings.Contains(cleaned, "}") {
+						blockEndSeen = true
+						insideBlock = false
+					}
 				}
 			} else {
 				return false
 			}
 		} else {
+			cleaned := config.CleanLineForBracesAndKeywords(line, &inSingleQuote, &inDoubleQuote)
 			if ext == ".fish" {
-				words := strings.Fields(line)
+				words := strings.Fields(cleaned)
 				for _, w := range words {
 					w = strings.Trim(w, ";()")
 					if w == "end" {
@@ -377,7 +388,7 @@ func isValidFunctionScript(name, code, ext string) bool {
 					insideBlock = false
 				}
 			} else {
-				depth += strings.Count(line, "{") - strings.Count(line, "}")
+				depth += strings.Count(cleaned, "{") - strings.Count(cleaned, "}")
 				if depth <= 0 {
 					blockEndSeen = true
 					insideBlock = false

@@ -148,10 +148,12 @@ func initialModel() model {
 	var preferredEditor string
 	if err == nil {
 		pkgs = cfg.Packages
-		theme = cfg.Theme
+		if cfg.Theme != "" {
+			theme = cfg.Theme
+		}
 		userName = cfg.UserName
 		preferredEditor = cfg.Editor
-		InitTheme(cfg.Theme)
+		InitTheme(theme)
 	} else {
 		InitTheme(theme)
 	}
