@@ -46,3 +46,4 @@ site/
 Thumbs.db
 demo.tape
 generate_assets.sh
+build/main

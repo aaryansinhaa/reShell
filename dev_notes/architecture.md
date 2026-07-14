@@ -66,3 +66,27 @@ During setup or migration, `reshell` can automatically discover and import confi
 
 4. **Target Profile**:
    - Imports can be directed to a specific isolated configuration profile, creating the profile automatically if it does not exist.
+
+## Remote Environment Synchronization (`reshell sync`)
+
+To sync configurations across workstations, `reshell` establishes a bi-directional synchronization mechanism:
+
+1. **Remote Repository Setup**:
+   - Configures a git remote named `sync-remote` referencing the user's remote Git deployment URL.
+   - On the first sync, the user is prompted for the URL, which is then stored in the profile's `config.toml`.
+
+2. **Programmatic Merge Strategy**:
+   - Instead of standard git file-level merges (which pollute TOML files with merge conflict markers like `<<<<<<<`), `reshell` fetches the remote branch and parses its contents programmatically using `git show` and `git ls-tree`.
+   - Structural items (aliases, env vars, snippets, workflows) are compared. If the local value differs from the remote value, the user is prompted interactively to resolve the conflict (Keep Local, Override with Remote, Keep Both/Rename, Skip).
+   - Lists (system packages and marketplace links) are merged and de-duplicated.
+   - Raw script and function files are compared by content; differences trigger conflict prompts to either keep local, override, or rename the remote file.
+
+3. **History Convergence & Push**:
+   - Once programmatic merge is complete, local changes are committed.
+   - To align local and remote git histories, the engine runs `git merge -s ours sync-remote/<branch> --allow-unrelated-histories`. This creates a merge commit showing history convergence, but preserves the programmatically merged local tree.
+   - The converged state is pushed back to the remote branch.
+
+4. **TUI Metrics & Rendering**:
+   - When syncing, `reshell` calls the GitHub API (for GitHub repositories) to fetch repository metadata (**Stars**, **Forks**, **Last Updated**, and **Open Issues**).
+   - This metadata is cached in the active profile's `config.toml` and displayed on the Marketplace tab, alongside a rendered view of the remote repository's `README.md`.
+

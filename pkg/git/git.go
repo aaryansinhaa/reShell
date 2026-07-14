@@ -8,11 +8,11 @@ import (
 
 // GitConfig represents the global git configuration states.
 type GitConfig struct {
-	UserName     string            `toml:"username"`
-	UserEmail    string            `toml:"email"`
-	GpgSign      bool              `toml:"signing"`
-	SigningKey   string            `toml:"signing_key"`
-	Aliases      map[string]string `toml:"aliases"`
+	UserName   string            `toml:"username"`
+	UserEmail  string            `toml:"email"`
+	GpgSign    bool              `toml:"signing"`
+	SigningKey string            `toml:"signing_key"`
+	Aliases    map[string]string `toml:"aliases"`
 }
 
 // GetConfig reads the active global git settings.

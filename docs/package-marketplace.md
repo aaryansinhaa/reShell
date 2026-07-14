@@ -98,3 +98,35 @@ language = "bash"
 [config]
 packages = ["openjdk-17-jdk", "maven", "gradle"]
 ```
+
+---
+
+## Remote Environment Synchronization
+
+Apart from importing static packages, you can link your active profile environment to a remote Git repository to dynamically sync changes between different workstations.
+
+### Sync Command (`reshell sync`)
+
+Running `reshell sync` performs a one-way (pull-only) synchronization to update your local workspace from the remote repository:
+
+1. **Authentication Warning**: Warns you that the sync connects to a remote Git repository and checks Git credentials.
+2. **Retrieve Remote State**: Fetches updates from the remote repository's branch and reads remote configurations.
+3. **Merge and Resolve Conflicts**:
+   - Compares items item-by-item.
+   - For package lists and marketplace references, it merges and de-duplicates them.
+   - For aliases, snippets, variables, workflows, custom functions, and script files, it prompts you interactively when a conflict is detected.
+4. **Local Backup Commit**: Once the configurations are merged programmatically, a commit is recorded in your local Git history (`[reshell] programmatically merged remote changes`). This commit remains strictly local on your machine and is never pushed back to the remote, ensuring the remote repository's git log remains completely clean and free of automated tool commits.
+
+### Visual TUI Marketplace Integration
+
+If a profile is configured with a `remote_sync_url`, the TUI **Marketplace** tab shifts from displaying generic onboarding instructions to displaying live remote deployment metadata:
+
+* **Remote Details**: Displays the Remote URL, Last Sync timestamp, and active sync status (e.g. `Up to date` or `⚠️ 3 commits behind`).
+* **GitHub Repository Metrics**: Displays live metrics fetched during sync (or loaded from cache):
+  - ⭐ **Stars**: Community trust / validation.
+  - 🍴 **Forks**: Adaptations by other developers.
+  - 🐛 **Open Issues**: General compatibility and bugs tracking.
+  - 📅 **Last Push**: Recency and decay checks.
+* **Interactive Syncing**: You can press `s` inside the Marketplace tab to immediately trigger the `sync` subcommand inside the TUI.
+* **README Rendering**: Displays the synced `README.md` file of the remote deployment inside the terminal utilizing a custom Markdown formatter.
+

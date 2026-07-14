@@ -8,9 +8,9 @@ import (
 	"reshell/pkg/aliases"
 	"reshell/pkg/config"
 	"reshell/pkg/env"
+	"reshell/pkg/marketplace"
 	"reshell/pkg/packages"
 	"reshell/pkg/shell"
-	"reshell/pkg/marketplace"
 	"reshell/pkg/snippets"
 	"reshell/pkg/workflows"
 	"strings"
@@ -224,7 +224,6 @@ func (m *model) initFormForMarketplace() {
 	m.formInputs[0].Placeholder = "Git Repository URL (e.g. github.com/user/pack)"
 	m.formInputs[0].Focus()
 }
-
 
 func (m *model) initFormForEditEnv(selected config.EnvVar) {
 	m.inputMode = true

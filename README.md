@@ -86,6 +86,7 @@ graph TD
 - **Shell Compiler**: Generates optimized setup scripts and automatically registers startup hooks in `.bashrc`, `.zshrc`, or `config.fish`.
 - **Portable Configurations**: Import or export configuration directories as a single TOML manifest. Note that the configuration merge overwrites the existing settings, but you can revert those using the version control available inside reshell.
 - **Workspace Version Control**: Automatically tracks configuration files and custom scripts in a local Git repository, with TUI controls to view history and revert changes.
+- **Remote Environment Synchronization**: Automatically synchronizes your configurations (aliases, env vars, snippets, custom functions, workflows, packages, and scripts) with a remote Git repository, merging differences cleanly and prompting on conflicts.
 
 ---
 
@@ -146,6 +147,7 @@ The setup command:
 | `reshell git clear` | Clears version control history for the active profile |
 | `reshell export <toml-path>` | Exports configurations into a single TOML manifest |
 | `reshell import <toml-path>` | Imports configurations from a TOML manifest |
+| `reshell sync` | Synchronizes current workspace environment with a remote Git deployment |
 | `reshell profile list` | Lists all configuration profiles |
 | `reshell profile create <name>` | Creates a new isolated configuration profile |
 | `reshell profile switch <name>` | Switches active profile and recompiles hooks |

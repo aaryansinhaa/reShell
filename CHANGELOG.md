@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added remote package synchronization and one-way pull updates (`reshell sync`) with programmatic merge support. ([#25](https://github.com/aaryansinhaa/reshell/issues/25))
+- Added TUI Marketplace tab integration displaying GitHub repository metadata, stars, forks, status badges, and formatted README files. ([#25](https://github.com/aaryansinhaa/reshell/issues/25))
+- Added automatic parsing and merging of workflows during package installation. ([#25](https://github.com/aaryansinhaa/reshell/issues/25))
 - Added new unit test suite for custom functions package (`pkg/functions`) to improve test coverage. ([#24](https://github.com/aaryansinhaa/reshell/issues/24))
 - Added a demo gif in the readme. ([#17](https://github.com/aaryansinhaa/reshell/issues/17))
 - Auto-discover and import configurations (aliases, environment variables, custom functions, snippets) from local shell profiles, ~/.config, VS Code user snippets, and Pet manager TOML configs during setup ([#1](https://github.com/aaryansinhaa/reshell/issues/1))
@@ -40,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed SSH repository clone URL parsing in `FetchManifest` (preventing incorrect HTTPS normalization on `git@` SSH links). ([#25](https://github.com/aaryansinhaa/reshell/issues/25))
+- Fixed TUI Marketplace tab layout bugs where underlines leaked into card border spaces, and forced card to take up remaining height. ([#25](https://github.com/aaryansinhaa/reshell/issues/25))
 - Fixed auto-discovery configuration parser to ignore braces and shell keywords when they are inside comments or string literals.
 - fixed pass expansion issues ([#15](https://github.com/aaryansinhaa/reshell/issues/15))
 - favourite and tag issues and other minor issues in the snippets tab ([#6](https://github.com/aaryansinhaa/reshell/issues/6))

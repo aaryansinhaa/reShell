@@ -131,4 +131,3 @@ description = "Build and upload frontend dist"
 		return lipgloss.JoinVertical(lipgloss.Left, list...)
 	}
 }
-
