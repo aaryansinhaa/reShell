@@ -74,7 +74,7 @@ func (m *model) openEditorForWorkflows() tea.Cmd {
 		return nil
 	}
 	path := filepath.Join(dir, "workflows.toml")
-	
+
 	// Create empty workflows.toml with boilerplate template if it does not exist
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		boilerplate := `[[workflows]]
@@ -496,6 +496,12 @@ func (m *model) loadData() {
 	}
 	if cfg, err := config.LoadConfig(); err == nil {
 		m.packagesData = cfg.Packages
+		m.remoteSyncURL = cfg.RemoteSyncURL
+		m.lastSync = cfg.LastSync
+		m.forksCount = cfg.Forks
+		m.starsCount = cfg.Stars
+		m.lastUpdated = cfg.LastUpdated
+		m.openIssuesCount = cfg.OpenIssues
 	}
 	if e, err := config.LoadEnv(); err == nil {
 		m.envData = e.Variables
@@ -515,6 +521,45 @@ func (m *model) loadData() {
 
 	for _, pkg := range m.packagesData {
 		m.pkgStatus[pkg] = packages.IsInstalled(pkg)
+	}
+
+	// Load README.md if it exists
+	if configDir, err := config.GetConfigDir(); err == nil {
+		m.readmeContent = ""
+		for _, name := range []string{"README.md", "readme.md", "README"} {
+			readmePath := filepath.Join(configDir, name)
+			if body, err := os.ReadFile(readmePath); err == nil {
+				m.readmeContent = string(body)
+				break
+			}
+		}
+
+		// Count commits behind if remote is configured
+		if m.remoteSyncURL != "" {
+			m.updatesCount = 0
+			// Detect remote branch name
+			remoteBranch := "main"
+			if _, err := exec.Command("git", "-C", configDir, "show-ref", "--verify", "refs/remotes/sync-remote/main").Output(); err == nil {
+				remoteBranch = "main"
+			} else if _, err := exec.Command("git", "-C", configDir, "show-ref", "--verify", "refs/remotes/sync-remote/master").Output(); err == nil {
+				remoteBranch = "master"
+			}
+
+			// Get local branch name
+			localBranch := "main"
+			if out, err := exec.Command("git", "-C", configDir, "rev-parse", "--abbrev-ref", "HEAD").Output(); err == nil {
+				localBranch = strings.TrimSpace(string(out))
+			}
+
+			// Count
+			behindCmd := exec.Command("git", "-C", configDir, "rev-list", "--count", fmt.Sprintf("%s..sync-remote/%s", localBranch, remoteBranch))
+			if out, err := behindCmd.Output(); err == nil {
+				var count int
+				if _, err := fmt.Sscanf(strings.TrimSpace(string(out)), "%d", &count); err == nil {
+					m.updatesCount = count
+				}
+			}
+		}
 	}
 
 	m.updateSearchResults()

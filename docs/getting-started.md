@@ -110,6 +110,20 @@ reshell import ~/backup-config.toml
 
 Once imported, execute `reshell apply` to compile and source the new configuration.
 
+### Syncing with Remote Deployments
+
+To automate environment synchronization across multiple machines without manually exporting and importing manifests, use the `sync` command:
+
+```bash
+reshell sync
+```
+
+* **First-time Run**: The command prompts you to input your remote deployment Git URL (SSH or HTTPS).
+* **Git Authentication Warning**: Since syncing interacts with a remote Git repository, it may require Git authentication. If authentication fails, the Git error will be output to the terminal.
+* **Programmatic Merging**: The engine programmatically fetches remote changes and merges them with your local configurations. In case of conflicts (such as different values for the same alias or env variable), you are presented with options to keep local, override, rename, or skip.
+* **Git Convergence**: Merges are saved locally, committed, and pushed back to the remote repository.
+* **TUI Synchronization**: You can also trigger this sync directly inside the TUI dashboard by navigating to the **Marketplace** tab and pressing `s`.
+
 ---
 
 ## Dashboard Usage

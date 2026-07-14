@@ -1,7 +1,10 @@
 package marketplace
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -9,8 +12,10 @@ import (
 	"reshell/pkg/config"
 	"reshell/pkg/env"
 	"reshell/pkg/functions"
+	"reshell/pkg/git"
 	"reshell/pkg/snippets"
 	"strings"
+	"time"
 
 	"github.com/pelletier/go-toml/v2"
 )
@@ -21,9 +26,10 @@ type MarketplaceManifest struct {
 		Name        string `toml:"name"`
 		Description string `toml:"description"`
 	} `toml:"package"`
-	Aliases   []config.Alias   `toml:"aliases"`
-	Variables []config.EnvVar  `toml:"variables"`
-	Snippets  []config.Snippet `toml:"snippets"`
+	Aliases   []config.Alias    `toml:"aliases"`
+	Variables []config.EnvVar   `toml:"variables"`
+	Snippets  []config.Snippet  `toml:"snippets"`
+	Workflows []config.Workflow `toml:"workflows"`
 	Config    struct {
 		Packages []string `toml:"packages"`
 	} `toml:"config"`
@@ -34,7 +40,7 @@ type MarketplaceManifest struct {
 func FetchManifest(repoURL string) (*MarketplaceManifest, string, error) {
 	// Normalize URL, e.g. github.com/username/repo -> https://github.com/username/repo
 	fullURL := repoURL
-	if !os.IsPathSeparator(repoURL[0]) && !strings.Contains(repoURL, "://") {
+	if !os.IsPathSeparator(repoURL[0]) && !strings.Contains(repoURL, "://") && !strings.HasPrefix(repoURL, "git@") {
 		fullURL = "https://" + repoURL
 	}
 
@@ -210,6 +216,38 @@ func MergeManifest(manifest *MarketplaceManifest, tempDir string) error {
 		}
 	}
 
+	// 9. Copy README.md
+	configDir, errDir := config.GetConfigDir()
+	if errDir == nil {
+		for _, name := range []string{"README.md", "readme.md", "README"} {
+			srcReadme := filepath.Join(tempDir, name)
+			if _, err := os.Stat(srcReadme); err == nil {
+				if body, err := os.ReadFile(srcReadme); err == nil {
+					destReadme := filepath.Join(configDir, name)
+					_ = os.WriteFile(destReadme, body, 0600)
+					break
+				}
+			}
+		}
+	}
+
+	// 10. Merge workflows
+	if len(manifest.Workflows) > 0 {
+		localCfg, err := config.LoadWorkflows()
+		if err == nil {
+			localMap := make(map[string]bool)
+			for _, wf := range localCfg.Workflows {
+				localMap[wf.Name] = true
+			}
+			for _, remoteWf := range manifest.Workflows {
+				if !localMap[remoteWf.Name] {
+					localCfg.Workflows = append(localCfg.Workflows, remoteWf)
+				}
+			}
+			_ = config.SaveWorkflows(localCfg)
+		}
+	}
+
 	return nil
 }
 
@@ -225,5 +263,118 @@ func Install(repoURL string) (*MarketplaceManifest, error) {
 		return nil, err
 	}
 
+	// 1. Initialize local git if not already initialized
+	_ = git.InitWorkspace()
+
+	// 2. Configure/update git remote sync-remote
+	configDir, errDir := config.GetConfigDir()
+	if errDir == nil {
+		fullURL := repoURL
+		if !strings.Contains(repoURL, "://") && !strings.HasPrefix(repoURL, "git@") {
+			fullURL = "https://" + repoURL
+		}
+		// Run git remote remove/add
+		cmdRemove := exec.Command("git", "remote", "remove", "sync-remote")
+		cmdRemove.Dir = configDir
+		_ = cmdRemove.Run()
+
+		cmdAdd := exec.Command("git", "remote", "add", "sync-remote", fullURL)
+		cmdAdd.Dir = configDir
+		_ = cmdAdd.Run()
+
+		// Run git fetch sync-remote in background or foreground
+		cmdFetch := exec.Command("git", "fetch", "sync-remote")
+		cmdFetch.Dir = configDir
+		_ = cmdFetch.Run()
+	}
+
+	// Automatically track/link this remote repository URL for future sync runs
+	cfg, errConfig := config.LoadConfig()
+	if errConfig == nil {
+		fullURL := repoURL
+		if !strings.Contains(repoURL, "://") && !strings.HasPrefix(repoURL, "git@") {
+			fullURL = "https://" + repoURL
+		}
+		cfg.RemoteSyncURL = fullURL
+		_ = config.SaveConfig(cfg)
+		go FetchAndCacheGitHubMetrics(cfg)
+	}
+
 	return manifest, nil
+}
+
+func ParseGitHubRepo(url string) (owner, repo string) {
+	url = strings.TrimSuffix(url, ".git")
+	if strings.Contains(url, "git@github.com:") {
+		parts := strings.Split(url, "git@github.com:")
+		if len(parts) > 1 {
+			sub := strings.Split(parts[1], "/")
+			if len(sub) >= 2 {
+				return sub[0], sub[1]
+			}
+		}
+	} else if strings.Contains(url, "github.com/") {
+		parts := strings.Split(url, "github.com/")
+		if len(parts) > 1 {
+			sub := strings.Split(parts[1], "/")
+			if len(sub) >= 2 {
+				return sub[0], sub[1]
+			}
+		}
+	}
+	return "", ""
+}
+
+type GitHubRepoResponse struct {
+	ForksCount      int    `json:"forks_count"`
+	StargazersCount int    `json:"stargazers_count"`
+	PushedAt        string `json:"pushed_at"`
+	OpenIssuesCount int    `json:"open_issues_count"`
+}
+
+func FetchAndCacheGitHubMetrics(cfg *config.Config) {
+	owner, repo := ParseGitHubRepo(cfg.RemoteSyncURL)
+	if owner == "" || repo == "" {
+		return
+	}
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/repos/%s/%s", owner, repo), nil)
+	if err != nil {
+		return
+	}
+	req.Header.Set("User-Agent", "reshell-sync-client")
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	var data GitHubRepoResponse
+	if err := json.Unmarshal(body, &data); err != nil {
+		return
+	}
+
+	// Update cached configuration details
+	cfg, err = config.LoadConfig()
+	if err == nil {
+		cfg.Forks = data.ForksCount
+		cfg.Stars = data.StargazersCount
+		cfg.OpenIssues = data.OpenIssuesCount
+		if t, err := time.Parse(time.RFC3339, data.PushedAt); err == nil {
+			cfg.LastUpdated = t.Local().Format("2006-01-02 15:04")
+		} else {
+			cfg.LastUpdated = data.PushedAt
+		}
+		_ = config.SaveConfig(cfg)
+	}
 }

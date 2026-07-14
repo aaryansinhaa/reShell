@@ -14,11 +14,17 @@ var IsTUI bool = false
 
 // Config represents the global reshell configuration.
 type Config struct {
-	Packages    []string `toml:"packages"`
-	Marketplace []string `toml:"marketplace"`
-	Theme       string   `toml:"theme"`
-	UserName    string   `toml:"username"`
-	Editor      string   `toml:"editor"`
+	Packages      []string `toml:"packages"`
+	Marketplace   []string `toml:"marketplace"`
+	Theme         string   `toml:"theme"`
+	UserName      string   `toml:"username"`
+	Editor        string   `toml:"editor"`
+	RemoteSyncURL string   `toml:"remote_sync_url"`
+	LastSync      string   `toml:"last_sync"`
+	Forks         int      `toml:"forks"`
+	Stars         int      `toml:"stars"`
+	LastUpdated   string   `toml:"last_updated"`
+	OpenIssues    int      `toml:"open_issues"`
 }
 
 // Alias represents a single shell alias.

@@ -294,7 +294,6 @@ func Uninstall(pkgName, manager string, sudoPassword []byte, stdoutChan chan<- s
 	return cmd.Wait()
 }
 
-
 // Add appends a new package name to config.toml.
 func Add(pkgName string) error {
 	cfg, err := config.LoadConfig()

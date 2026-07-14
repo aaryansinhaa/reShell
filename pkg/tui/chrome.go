@@ -90,7 +90,7 @@ func (c ChromeComponent) HelpView(m model) string {
 	case TabPackages:
 		tabKeys = []string{"n: Add package", "d: Delete", "i: Install packages", "u: Uninstall package"}
 	case TabMarketplace:
-		tabKeys = []string{"i: Install profile package"}
+		tabKeys = []string{"i: Install profile package", "s: Sync remote deployment"}
 	case TabEnv:
 		tabKeys = []string{"n: Add variable", "e: Edit variable", "d: Delete", "Space: Toggle enable/disable"}
 	case TabGit:

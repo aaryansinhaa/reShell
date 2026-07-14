@@ -212,4 +212,3 @@ func TestEscapeDoubleQuotes(t *testing.T) {
 		})
 	}
 }
-

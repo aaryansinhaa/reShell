@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -83,12 +84,12 @@ type model struct {
 	searchResults []SearchResult
 
 	// Local databases
-	aliasesData   []config.Alias
-	snippetsData  []config.Snippet
-	functionsData []string
-	scriptsData   []scripts.Script
-	workflowsData []config.Workflow
-	envData       []config.EnvVar
+	aliasesData    []config.Alias
+	snippetsData   []config.Snippet
+	functionsData  []string
+	scriptsData    []scripts.Script
+	workflowsData  []config.Workflow
+	envData        []config.EnvVar
 	gitData        *git.GitConfig
 	gitCommits     []git.Commit
 	gitHistoryView bool
@@ -99,13 +100,13 @@ type model struct {
 	pkgStatus      map[string]bool // pkg -> installed
 
 	// Interactive Input Forms
-	inputMode  bool
+	inputMode      bool
 	formType       string // "snippet", "alias", "function", "script", "workflow", "env", "sudo", "marketplace"
 	oldEnvName     string
 	oldSnippetName string
 	formTitle      string
-	formInputs []textinput.Model
-	inputFocus int
+	formInputs     []textinput.Model
+	inputFocus     int
 
 	// Workflow Runner State
 	runningWorkflow *config.Workflow
@@ -121,9 +122,19 @@ type model struct {
 	viewport         viewport.Model
 
 	// Marketplace installer state
-	marketplaceURL string
+	marketplaceURL  string
 	fetchedManifest *marketplace.MarketplaceManifest
 	fetchedTempDir  string
+
+	// Sync state
+	remoteSyncURL   string
+	lastSync        string
+	forksCount      int
+	starsCount      int
+	lastUpdated     string
+	openIssuesCount int
+	updatesCount    int
+	readmeContent   string
 
 	// Modular sub-components
 	search      SearchComponent
@@ -557,6 +568,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.showStatus(fmt.Sprintf("Switched active profile to '%s'!", selected), 3*time.Second)
 					return m, m.applySettings()
 				}
+			} else if m.activeTab == TabMarketplace {
+				exe, err := os.Executable()
+				if err != nil {
+					exe = "reshell"
+				}
+				c := exec.Command(exe, "sync")
+				return m, tea.ExecProcess(c, func(err error) tea.Msg {
+					return editorFinishedMsg{err: err}
+				})
 			}
 
 		case "r":
