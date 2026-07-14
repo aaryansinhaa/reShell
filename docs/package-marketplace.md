@@ -119,6 +119,10 @@ Running `reshell sync` performs a one-way (pull-only) synchronization to update 
 
 ### Visual TUI Marketplace Integration
 
+<p align="center">
+  <img src="../assets/reshell_marketplace.jpg" alt="ReShell Marketplace" width="650">
+</p>
+
 If a profile is configured with a `remote_sync_url`, the TUI **Marketplace** tab shifts from displaying generic onboarding instructions to displaying live remote deployment metadata:
 
 * **Remote Details**: Displays the Remote URL, Last Sync timestamp, and active sync status (e.g. `Up to date` or `⚠️ 3 commits behind`).
